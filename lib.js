@@ -165,14 +165,18 @@ export function gen_poly_concave(x, y, nb_side, size_max) {
     let center = new Polygon(points).Barycenter;
     points.sort((A, B) => center.angle(A) - center.angle(B));
 
-  /*   for (let i = 0, j = this.Point_List.length - 1; i < this.Point_List.length; j = i++) {
-        const Point_A = this.Point_List[j];
-        const Point_B = this.Point_List[i];
-        let angle_between_pt = Point_B.angle(Point_A);
-    } */
-
-
     let output_poly = new Polygon(points, size_max);
+
+    for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
+        const Point_A = output_poly.Point_List[j];
+        const Point_B = output_poly.Point_List[i];
+        let angle_between_pt = Point_B.angle(Point_A);
+
+        if (angle_between_pt < 45) {
+            output_poly.Point_List.splice(i, 1);
+        }
+    }
+
     return output_poly;
 }
 
