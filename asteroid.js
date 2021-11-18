@@ -8,70 +8,47 @@ let CONVEXE = 0
 let CONCAVE = 1
 
 export class Asteroid {
-    constructor(x, y, side_count, max_size, direction, mode) {
+    constructor(x, y, side_count, max_size, mode) {
         if (mode == CONCAVE) {
             this.poly = gen_poly_concave(x, y, side_count, max_size);
-            this.direction = direction;
         }
+        this.speed = 4
+        this.direction = rand_direction(this.speed);
     }
 
     move_asteroid() {
-        if (this.poly.x > WIDTH + this.poly.Size) {
-            this.poly.x = -this.poly.Size;
+        let dx = WIDTH + this.poly.Size;
+        let dy = HEIGHT + this.poly.Size;
+
+        if (this.poly.Barycenter.x < -this.poly.Size / 2) {
+            this.poly.move(dx, 0);
         }
-        else if (this.poly.x < -this.poly.Size) {
-            this.poly.x = WIDTH + this.poly.Size;
+        if (this.poly.Barycenter.x > WIDTH + this.poly.Size / 2) {
+            this.poly.move(-dx, 0);
         }
-        else if (this.poly.y > HEIGHT + this.poly.Size) {
-            this.poly.y = -this.poly.Size;
+        if (this.poly.Barycenter.y < -this.poly.Size / 2) {
+            this.poly.move(0, dy);
+
         }
-        else if (this.poly.y < -this.poly.Size) {
-            this.poly.y = HEIGHT + this.poly.Size;
+        if (this.poly.Barycenter.y > HEIGHT + this.poly.Size / 2) {
+            this.poly.move(0, -dy);
         }
 
-        this.poly.move(this.direction.x, this.direction.y)
+        this.poly.move(this.direction.x, this.direction.y);
     }
 }
 
-export function spawn_asteroid() {
-    let x, y;
+export function spawn_asteroid(x, y) {
     let size = 200;
-    let direction;
-    // Random location on the side
-    // Choose side
-    let side = Math.floor(Rand_Between(0, 4));
-    if (side == 0) {
-        x = -size / 2;
-        direction = rand_direction(315, 360) + rand_direction(0, 45);
-    }
-    if (side == 2) {
-        x = WIDTH + (size / 2);
-        direction = rand_direction(135, 225);
-    }
-    if (side == 1) {
-        y = -size / 2;
-        direction = rand_direction(225, 315);
-    }
-    if (side == 3) {
-        y = HEIGHT + (size / 2);
-        direction = rand_direction(45, 135);
-    }
-    // Choose pos
-    if (side == 0 || side == 2) {
-        y = Rand_Between(-size / 2, ((HEIGHT + size) / 2) + 1);
-    }
-    else {
-        x = Rand_Between(-size / 2, ((WIDTH + size) / 2) + 1);
-    }
 
     // instantiate an asteroid
-    let a = new Asteroid(x, y, 20, size, direction, CONCAVE);
+    let a = new Asteroid(x - (size / 2), y - (size / 2), 20, size, CONCAVE);
 
     // return the asteroid
     return a;
 }
 
-function rand_direction(min, max) {
-    let a = Math.floor(Rand_Between(min, max + 1)) * Math.PI / 180;
-    return new Point(Math.sin(a), Math.cos(a));
+function rand_direction(speed) {
+    let a = Math.floor(Rand_Between(0, 361)) * Math.PI / 180
+    return new Point(speed * Math.sin(a), speed * Math.cos(a))
 }

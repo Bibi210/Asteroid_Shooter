@@ -18,7 +18,7 @@ export class Point {
     }
 
     angle(Other = new Point(0, 0)) {
-        return Math.atan2(this.x - Other.x, this.y - Other.y) * 180 / Math.PI;
+        return Math.atan2(this.x - Other.x, this.y - Other.y);
     }
     distance(other) {
         return Math.sqrt(Math.pow(other.x - this.x, 2) + Math.pow(other.y - this.y, 2));
@@ -141,6 +141,20 @@ export class Polygon {
     updatePos() {
         this.move(this.Vx, this.Vy);
     }
+    rotate(angle) {
+        let O = this.Barycenter;
+        angle *= Math.PI / 180;
+        this.Point_List.forEach(element => {
+            element.x = (element.x - O.x) * Math.cos(angle) + (element.y - O.y) * Math.sin(angle) + O.x;
+            element.y = -(element.x - O.x) * Math.sin(angle) + (element.y - O.y) * Math.cos(angle) + O.y;
+        });
+    }
+    scale(k) {
+        this.Point_List.forEach(element => {
+            element.x += k * (this.Barycenter.x - element.x);
+            element.y += k * (this.Barycenter.y - element.y);
+        });
+    }
 }
 
 export class Rectangle extends Polygon {
@@ -167,15 +181,16 @@ export function gen_poly_concave(x, y, nb_side, size_max) {
 
     let output_poly = new Polygon(points, size_max);
 
-    for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
-        const Point_A = output_poly.Point_List[j];
-        const Point_B = output_poly.Point_List[i];
-        let angle_between_pt = Point_B.angle(Point_A);
+    // not working
+    // for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
+    //     const Point_A = output_poly.Point_List[j];
+    //     const Point_B = output_poly.Point_List[i];
+    //     let angle_between_pt = Point_B.angle(Point_A);
 
-        if (angle_between_pt < 45) {
-            output_poly.Point_List.splice(i, 1);
-        }
-    }
+    //     if (angle_between_pt < 45) {
+    //         output_poly.Point_List.splice(i, 1);
+    //     }
+    // }
 
     return output_poly;
 }
