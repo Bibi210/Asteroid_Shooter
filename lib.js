@@ -32,6 +32,9 @@ export class Point {
         this.x = center.x - (this.distance(center) * Math.cos(angle));
         this.y = center.y - (this.distance(center) * -Math.sin(angle));
     }
+    add(other) {
+        return new Point(this.x + other.x, this.y + other.y);
+    }
 }
 
 export class Segment {

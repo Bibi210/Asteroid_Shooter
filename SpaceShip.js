@@ -9,10 +9,13 @@ import { Polygon, Point, random_rgb, to_radians } from "./lib.js"
 
 class Ship {
     poly;
-    angle = 0;
     current_direction = 0;
     rot_speed = 0;
-    accel = 0;
+    accel = new Point(0, 0);
+    speed = new Point(0, 0);
+    frottement_rate = 0.997;
+    accel_rate = 0.0085;
+
     constructor(poly, scale) {
         this.poly = poly;
         poly.scale(scale);
@@ -27,25 +30,12 @@ class Ship {
     no_spin() {
         this.rot_speed = 0;
     }
-    accerate() {
-        if (this.accel < 300 && this.accel >= 0) {
-            if (this.accel == 0) {
-                this.accel = 10;
-            }
-            this.accel *= 4;
-        }
-
-    }
-    decelerate() {
-        if (this.accel > 15)
-            this.accel -= 3;
-    }
-    break() {
-        if (this.accel > 0)
-            this.accel -= 10;
-        if (this.accel < 0)
-            this.accel = 0;
-
+    forward() {
+        let rad_current_angle = to_radians(+90 + this.current_direction);
+        let accel_x = this.accel_rate * Math.cos(rad_current_angle);
+        let accel_y = this.accel_rate * -Math.sin(rad_current_angle);
+        let new_speed = this.speed.add(new Point(accel_x, accel_y));
+        this.speed = new_speed;
     }
     input_manage() {
         let go_left = key_pressed.some(i => i == 'q');
@@ -61,14 +51,8 @@ class Ship {
             if (go_right)
                 this.right();
         }
-
         if (key_pressed.some(i => i == 'z')) {
-            this.accerate();
-        }
-        else
-            this.decelerate();
-        if (key_pressed.some(i => i == 's')) {
-            this.break();
+            this.forward();
         }
 
     }
@@ -76,11 +60,19 @@ class Ship {
         this.input_manage();
         var rot = this.rot_speed * dt;
         this.current_direction = (this.current_direction + rot) % 360;
-        let O = this.poly.Barycenter;
-        let new_p = new Point(O.x + (this.accel * dt), O.y + (this.accel * dt));
-        new_p.rotate_point(O, -90 + this.current_direction);
-        this.teleport(new_p.x, new_p.y);
-        this.poly.rotate(rot - 90);
+        this.poly.rotate(rot);
+
+        if (this.speed.x) {
+            this.speed.x *= this.frottement_rate;
+        }
+        if (this.speed.y) {
+            this.speed.y *= this.frottement_rate;
+        }
+
+        this.move(this.speed.x, this.speed.y);
+
+        console.log(this.speed);
+
     }
     teleport(x, y) {
         this.poly.teleport(x, y);
@@ -93,14 +85,13 @@ class Ship {
     }
 }
 
-let ship = new Ship(new Polygon([new Point(0, 0), new Point(-3, 5), new Point(0, 3), new Point(3, 5)]), 10);
+let ship = new Ship(new Polygon([new Point(0, 0), new Point(-3, 5), new Point(0, 3), new Point(3, 5)]), 3);
 ship.teleport(cnv.width / 2, cnv.height / 2);
 ship.poly.Color = random_rgb();
 
 let key_pressed = [];
 
 function keydown_callback(event) {
-    console.log(event.key);
     // if (!key_pressed.some(i=>event.key == i)) {
     key_pressed.push(event.key);
     // }
