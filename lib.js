@@ -4,6 +4,10 @@ export function Rand_Between(min, max) {
 export function random_rgb() {
     return "rgb(" + (Math.random() * 255) + "," + (Math.random() * 255) + "," + (Math.random() * 255) + ")";
 }
+
+export function to_radians(angle) {
+    return angle * (Math.PI / 180);
+}
 export class Point {
     constructor(x, y, color = "rgb(0,0,0)") {
         this.x = x;
@@ -15,13 +19,18 @@ export class Point {
         ctx.arc(this.x, this.y, 5, 0, 2 * Math.PI, true);
         ctx.fillStyle = this.color;
         ctx.fill();
+        ctx.closePath();
     }
-
     angle(Other = new Point(0, 0)) {
         return Math.atan2(this.x - Other.x, this.y - Other.y);
     }
     distance(other) {
         return Math.sqrt(Math.pow(other.x - this.x, 2) + Math.pow(other.y - this.y, 2));
+    }
+    rotate_point(center, angle) {
+        angle = to_radians(angle);
+        this.x = center.x - (this.distance(center) * Math.cos(angle));
+        this.y = center.y - (this.distance(center) * -Math.sin(angle));
     }
 }
 
@@ -64,18 +73,22 @@ export class Polygon {
         this.Vy = Vy;
         this.Size = Size;
         this.Barycenter = new Point(0, 0);
+        this.calculateBarycenter();
+        this.Color = color;
+    }
 
+    calculateBarycenter() {
         let nb = 0;
+        this.Barycenter = new Point(0, 0);
         this.Point_List.forEach(element => {
             this.Barycenter.x += element.x
             this.Barycenter.y += element.y
             nb++;
         });
-
         this.Barycenter.x /= nb;
         this.Barycenter.y /= nb;
-        this.Color = color;
     }
+
     draw(ctx) {
         ctx.beginPath();
         ctx.moveTo(this.Start_Point.x, this.Start_Point.y);
@@ -83,8 +96,8 @@ export class Polygon {
             ctx.lineTo(this.Point_List[index].x, this.Point_List[index].y);
 
         ctx.lineTo(this.Start_Point.x, this.Start_Point.y);
-        ctx.strokeStyle = this.Color;
-        ctx.stroke();
+        ctx.fillStyle = this.Color;
+        ctx.fill();
         ctx.closePath();
         this.updatePos();
     }
@@ -138,22 +151,42 @@ export class Polygon {
         this.Barycenter.x += x
         this.Barycenter.y += y
     }
+    teleport(x, y) {
+        let O = this.Barycenter;
+        this.Point_List.forEach(element => {
+            let dist_x = element.x - O.x;
+            let dist_y = element.y - O.y;
+            element.x = dist_y + x;
+            element.y = -dist_x + y;
+        });
+        this.calculateBarycenter();
+    }
     updatePos() {
         this.move(this.Vx, this.Vy);
     }
     rotate(angle) {
         let O = this.Barycenter;
-        angle *= Math.PI / 180;
+        angle = to_radians(angle);
         this.Point_List.forEach(element => {
-            element.x = (element.x - O.x) * Math.cos(angle) + (element.y - O.y) * Math.sin(angle) + O.x;
-            element.y = -(element.x - O.x) * Math.sin(angle) + (element.y - O.y) * Math.cos(angle) + O.y;
+            let dist_x = element.x - O.x;
+            let dist_y = element.y - O.y;
+            element.x = dist_x * Math.cos(angle) + dist_y * Math.sin(angle) + O.x;
+            element.y = -dist_x * Math.sin(angle) + dist_y * Math.cos(angle) + O.y;
         });
     }
     scale(k) {
-        this.Point_List.forEach(element => {
-            element.x += k * (this.Barycenter.x - element.x);
-            element.y += k * (this.Barycenter.y - element.y);
-        });
+        if (k > 0) {
+            this.Point_List.forEach(element => {
+                element.x += -k * (this.Barycenter.x - element.x);
+                element.y += -k * (this.Barycenter.y - element.y);
+            });
+        }
+        else {
+            this.Point_List.forEach(element => {
+                element.x -= k * (this.Barycenter.x - element.x);
+                element.y -= k * (this.Barycenter.y - element.y);
+            });
+        }
     }
 }
 
