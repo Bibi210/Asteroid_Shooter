@@ -7,16 +7,24 @@ let CONCAVE = 1;
 export let RANDO = 1;
 export let GIVEN = 0;
 
-let LVL_MAX = 4;
-let MAX_SPEED = 6;
-let MIN_SPEED = 1;
+let LVL_MAX = 6;
+let MAX_SPEED = 4;
+let MIN_SPEED = 0.1;
+
+let COLOR = [
+    "rgb(37, 150, 190)", // Jaune
+    "rgb(37, 150, 190)", // Orange
+    "rgb(190, 49, 68)", // Rouge
+    "rgb(122, 108, 93)", // Gris
+    "rgb(83, 53, 73)", // Gris foncé
+    "rgb(32, 37, 71)" // Bleu Marine
+];
 
 export class Asteroid {
     constructor(pos, side_count, max_size, lvl, mode) {
         if (mode == CONCAVE)
             this.poly = gen_poly_concave(pos.x, pos.y, side_count, max_size);
         this.speed = speed_from_lvl(lvl);
-        console.log(this.speed);
         this.direction = rand_direction(this.speed);
         this.lvl = lvl
     }
@@ -61,6 +69,10 @@ function wrap_asteroid(asteroid) {
 }
 
 export function spawn_on_colision(asteroids, spawn_count) {
+    if (!asteroids.length) {
+        return
+    }
+
     // Choose a random asteroids
     let idx = random_element(asteroids.length)
 

@@ -39,7 +39,7 @@ function keydown_callback(event) {
         case ' ':
             // Simulate collision
             spawn_on_colision(asteroids, 2);
-            console.log(asteroids.length);
+            console.log("Nombre astéroids : " + asteroids.length);
     }
 }
 
