@@ -154,16 +154,6 @@ export class Polygon {
         this.Barycenter.x += x
         this.Barycenter.y += y
     }
-    teleport(x, y) {
-        let O = this.Barycenter;
-        this.Point_List.forEach(element => {
-            let dist_x = element.x - O.x;
-            let dist_y = element.y - O.y;
-            element.x = dist_y + x;
-            element.y = -dist_x + y;
-        });
-        this.calculateBarycenter();
-    }
     updatePos() {
         this.move(this.Vx, this.Vy);
     }
