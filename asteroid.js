@@ -38,8 +38,20 @@ export class Asteroid {
     }
 }
 
+export function draw_asteroids(asteroids, ctx) {
+    asteroids.forEach(asteroid => {
+        asteroid.poly.draw(ctx);
+    });
+}
+
+export function move_asteroids(asteroids) {
+    asteroids.forEach(asteroid => {
+        asteroid.move_asteroid();
+    });
+}
+
 export function spawn_asteroid(mode, lvl, pos = new Point(0, 0)) {
-    let size = 100 * lvl
+    let size = 1 / (LVL_MAX - lvl) * 100 // FIND A BETTER WAY TO SIZE
 
     if (mode)
         pos = rand_position(size);
@@ -98,7 +110,7 @@ function push_verticaly(y, size) {
     return y;
 }
 
-function rand_direction(speed) {
+export function rand_direction(speed) {
     let a = Math.floor(Rand_Between(0, 361)) * Math.PI / 180;
     return new Point(speed * Math.sin(a), speed * Math.cos(a));
 }

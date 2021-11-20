@@ -1,5 +1,6 @@
-import { GIVEN, RANDO, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
+import { draw_asteroids, move_asteroids, RANDO, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
 import { Point, Rand_Between } from "./lib.js";
+import { draw_particules, MAX_PARTICULES, MIN_PARTICULES, move_particules, spawn_particules } from "./particule.js";
 
 let cnv = document.getElementById("Canvas");
 cnv.width = window.innerWidth;
@@ -11,27 +12,26 @@ export let HEIGHT = cnv.height;
 export let CENTER = new Point(WIDTH / 2, HEIGHT / 2)
 
 let asteroids = [];
+let particules = [];
 
 function init() {
     for (let i = 0; i < 1; i++) {
-        asteroids.push(spawn_asteroid(RANDO, 4))
+        asteroids.push(spawn_asteroid(RANDO, 5))
     }
 }
 
-function draw() {
+function draw_elements() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
 
-    update_pos();
-
-    asteroids.forEach(asteroid => {
-        asteroid.poly.draw(ctx);
-    });
+    draw_asteroids(asteroids, ctx);
+    
+    if (particules.length)
+        draw_particules(particules, ctx)
 }
 
 function update_pos() {
-    asteroids.forEach(asteroid => {
-        asteroid.move_asteroid();
-    });
+    move_asteroids(asteroids);
+    move_particules(particules);
 }
 
 function keydown_callback(event) {
@@ -39,11 +39,17 @@ function keydown_callback(event) {
         case ' ':
             // Simulate collision
             spawn_on_colision(asteroids, 2);
-            console.log("Nombre astéroids : " + asteroids.length);
+            let new_particules = spawn_particules(Math.floor(Rand_Between(MIN_PARTICULES, MAX_PARTICULES)), CENTER);
+            particules = particules.concat(new_particules);
     }
 }
 
+function game() {
+    update_pos();
+    draw_elements();
+}
+
 init();
-setInterval(draw, 10);
+setInterval(game, 10);
 
 addEventListener("keydown", keydown_callback)
