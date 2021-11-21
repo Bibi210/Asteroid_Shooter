@@ -23,6 +23,7 @@ class Object extends Polygon {
     updatePos() {
         this.current_direction = (this.current_direction + this.rot_speed) % 360;
         this.rotate(this.rot_speed);
+
         if (this.speed.x)
             this.speed.x *= this.frottement_rate;
         if (this.speed.y)
@@ -42,7 +43,7 @@ class Object extends Polygon {
 }
 
 class Bullet extends Object {
-    bullets_duration = 200;
+    bullets_duration = 300;
     constructor(type, speed, scale) {
         let shape = JSON.parse(JSON.stringify(bullet_points[type]));
         super(shape, scale);
@@ -80,18 +81,22 @@ class Ship extends Object {
         let rad_current_angle = to_radians(+90 + this.current_direction);
         let accel_x = this.accel_rate * Math.cos(rad_current_angle);
         let accel_y = this.accel_rate * -Math.sin(rad_current_angle);
-        if (Math.abs(this.speed.x) + Math.abs(this.speed.y) < 3) {
+        if (Math.abs(this.speed.x) + Math.abs(this.speed.y) < 3)
             this.speed = this.speed.add(new Point(accel_x, accel_y));
-        }
+
     }
     shoot() {
         let rad_current_angle = to_radians(+90 + this.current_direction);
         let accel_x = 1 * Math.cos(rad_current_angle);
         let accel_y = 1 * -Math.sin(rad_current_angle);
-        let new_bullet = new Bullet(0, new Point(accel_x, accel_y), 10);
-        new_bullet.move(this.Barycenter.x, this.Barycenter.y);
+        let new_bullet = new Bullet(0, new Point(accel_x + this.speed.x, accel_y + this.speed.y), 5);
+        new_bullet.move(this.Start_Point.x, this.Start_Point.y);
         new_bullet.Color = random_rgb();
-        bullets.push(new_bullet);
+        if (bullets.length && bullets[bullets.length - 1].bullets_duration < 250)
+            bullets.push(new_bullet);
+
+        if (!bullets.length)
+            bullets.push(new_bullet);
     }
     input_manage() {
         let go_left = key_pressed.some(i => i == 'q');
@@ -120,30 +125,28 @@ class Ship extends Object {
 let ship = new Ship(ship_points, 5);
 ship.move(cnv.width / 2, cnv.height / 2);
 ship.Color = random_rgb();
-
 let key_pressed = [];
 let bullets = [];
 
 function keydown_callback(event) {
-    // if (!key_pressed.some(i=>event.key == i)) {
-    key_pressed.push(event.key);
-    // }
+    if (!key_pressed.some(i => i == event.key))
+        key_pressed.push(event.key);
 }
 function keyup_callback(event) {
-    for (let index = key_pressed.indexOf(event.key); index != -1; index = key_pressed.indexOf(event.key)) {
-        key_pressed.splice(index, 1);
-    }
+    key_pressed = key_pressed.filter(i => i != event.key);
 }
 
 function draw() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
-    ship.draw(ctx);
     bullets.forEach(element => element.draw(ctx));
+    ship.draw(ctx);
 }
 
 function update() {
+    console.log(key_pressed);
     draw();
     ship.update_ship();
+
     for (let index = 0; index < bullets.length; index++) {
         bullets[index].update();
         if (!bullets[index].bullets_duration)
