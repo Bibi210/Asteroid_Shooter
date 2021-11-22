@@ -1,44 +1,44 @@
 import { gen_poly_concave, Point, Rand_Between } from "./lib.js";
 import { CENTER, HEIGHT, WIDTH } from "./main.js";
+import { Object } from "./SpaceShip.js"
 
 // let CONVEXE = 0;
 let CONCAVE = 1;
 
 export let LVL_MAX = 6;
-let MAX_SPEED = 4;
+let MAX_SPEED = 0.5;
 let MIN_SPEED = 0.1;
 let DISPERSION = 180;
 
-// let COLOR = [
-//     "rgb(37, 150, 190)", //, Math.) Jaune
-//     "rgb(37, 150, 190)", // Orange
-//     "rgb(190, 49, 68)", // Rouge
-//     "rgb(122, 108, 93)", // Gris
-//     "rgb(83, 53, 73)", // Gris foncé
-//     "rgb(32, 37, 71)" // Bleu Marine
-// ];
+let COLOR = [
+    "#65010c",
+    "#cb1b16", 
+    "#ef3c2d", 
+    "#f26a4f",
+    "#f29479", 
+    "#fedfd4", 
+];
 
-export class Asteroid {
+export class Asteroid extends Object {
     constructor(pos, side_count, max_size, lvl, mode) {
+        let poly = gen_poly_concave(pos.x, pos.y, side_count, max_size);
         if (mode == CONCAVE)
-            this.poly = gen_poly_concave(pos.x, pos.y, side_count, max_size);
-        this.speed = speed_from_lvl(lvl);
-        this.direction = better_direction(this.speed, pos); // rand_direction(this.speed);
+            super(poly.Point_List, 0)
+        this.Size = poly.Size; 
+        this.Color = COLOR[lvl];
+        this.speed = better_direction(speed_from_lvl(lvl), pos); // rand_direction(this.speed);
         this.lvl = lvl
     }
 
     move_asteroid() {
-        // Check asteroid position => wrap asteroid on the other side of the screen
-        wrap_asteroid(this);
-
         // Move asteroid
-        this.poly.move(this.direction.x, this.direction.y);
+        this.updatePos();
     }
 }
 
 export function draw_asteroids(asteroids, ctx) {
     asteroids.forEach(asteroid => {
-        asteroid.poly.draw(ctx);
+        asteroid.draw(ctx);
     });
 }
 
@@ -49,7 +49,7 @@ export function move_asteroids(asteroids) {
 }
 
 export function spawn_asteroid(lvl, pos = undefined) {
-    let size = 1 / (LVL_MAX - lvl) * 100 // FIND A BETTER WAY TO SIZE
+    let size = 1 / (LVL_MAX - lvl) * 200 // FIND A BETTER WAY TO SIZE
 
     if (!pos)
         pos = rand_position_on_side(size);
@@ -61,23 +61,7 @@ export function spawn_asteroid(lvl, pos = undefined) {
     return a;
 }
 
-function wrap_asteroid(asteroid) {
-    let dx = WIDTH + asteroid.poly.Size;
-    let dy = HEIGHT + asteroid.poly.Size;
-
-    if (asteroid.poly.Barycenter.x < -asteroid.poly.Size / 2)
-        asteroid.poly.move(dx, 0);
-
-    if (asteroid.poly.Barycenter.x > WIDTH + asteroid.poly.Size / 2)
-        asteroid.poly.move(-dx, 0);
-
-    if (asteroid.poly.Barycenter.y < -asteroid.poly.Size / 2)
-        asteroid.poly.move(0, dy);
-
-    if (asteroid.poly.Barycenter.y > HEIGHT + asteroid.poly.Size / 2)
-        asteroid.poly.move(0, -dy);
-}
-
+// TODO Update with colision
 export function spawn_on_colision(asteroids, spawn_count) {
     if (!asteroids.length) {
         return
@@ -88,7 +72,7 @@ export function spawn_on_colision(asteroids, spawn_count) {
 
     // get the position of the destroyed asteroids
     let rm_a = asteroids.splice(idx, 1)
-    let new_pos = new Point(rm_a[0].poly.Barycenter.x - rm_a[0].poly.Size / 2, rm_a[0].poly.Barycenter.y - rm_a[0].poly.Size / 2)
+    let new_pos = new Point(rm_a[0].Barycenter.x - rm_a[0].Size / 2, rm_a[0].Barycenter.y - rm_a[0].Size / 2)
 
     // instantiate new asteroids
     if (rm_a[0].lvl != 0) {

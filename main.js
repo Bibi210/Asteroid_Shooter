@@ -1,4 +1,4 @@
-import { draw_asteroids, move_asteroids, spawn_asteroid } from "./asteroid.js";
+import { draw_asteroids, LVL_MAX, move_asteroids, spawn_asteroid } from "./asteroid.js";
 import { Point, Rectangle, random_rgb } from "./lib.js";
 import { draw_particules, move_particules } from "./particule.js";
 import { Ship} from "./SpaceShip.js"
@@ -14,7 +14,7 @@ export let WIDTH = cnv.width;
 export let HEIGHT = cnv.height;
 export let CENTER = new Point(WIDTH / 2, HEIGHT / 2)
 
-let ASTEROID_COUNT = 20;
+let ASTEROID_COUNT = 5;
 
 let asteroids = [];
 let particules = [];
@@ -35,7 +35,7 @@ let ship_B = new Ship(ship_points, 5, ship_B_keys);
 
 function init() {
     for (let i = 0; i < ASTEROID_COUNT; i++) {
-        asteroids.push(spawn_asteroid(5))
+        asteroids.push(spawn_asteroid(LVL_MAX - 1))
     }
 
     ship_A.move(cnv.width / 2, cnv.height / 2);
@@ -76,6 +76,10 @@ function update_pos() {
         if (!bullets[index].bullets_duration)
             bullets.splice(index, 1);
     }
+}
+
+function check_colision() {
+    
 }
 
 function game() {

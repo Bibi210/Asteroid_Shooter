@@ -99,8 +99,8 @@ export class Polygon {
             ctx.lineTo(this.Point_List[index].x, this.Point_List[index].y);
 
         ctx.lineTo(this.Start_Point.x, this.Start_Point.y);
-        ctx.fillStyle = this.Color;
-        ctx.fill();
+        ctx.strokeStyle = this.Color;
+        ctx.stroke();
         ctx.closePath();
         this.updatePos();
     }
@@ -208,15 +208,20 @@ export function gen_poly_concave(x, y, nb_side, size_max) {
     let output_poly = new Polygon(points, size_max);
 
     // not working
-    // for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
-    //     const Point_A = output_poly.Point_List[j];
-    //     const Point_B = output_poly.Point_List[i];
-    //     let angle_between_pt = Point_B.angle(Point_A);
+    let to_delete = []; 
+    for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
+        const Point_A = output_poly.Point_List[j];
+        const Point_B = output_poly.Point_List[i];
+        let angle_between_pt = Point_B.angle(Point_A);
 
-    //     if (angle_between_pt < 45) {
-    //         output_poly.Point_List.splice(i, 1);
-    //     }
-    // }
+        if (angle_between_pt < 60) {
+            to_delete.push(i);
+        }
+    }
+
+    to_delete.forEach(i => {
+        output_poly.Point_List.splice(i, 1);
+    });
 
     return output_poly;
 }

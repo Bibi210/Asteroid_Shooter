@@ -12,6 +12,7 @@ export class Object extends Polygon {
         super(Point_List);
         this.scale(scale);
     }
+
     updatePos() {
         this.current_direction = (this.current_direction + this.rot_speed) % 360;
         this.rotate(this.rot_speed);
@@ -22,15 +23,24 @@ export class Object extends Polygon {
             this.speed.y *= this.frottement_rate;
         this.move(this.speed.x, this.speed.y);
 
-        if (this.Barycenter.x > WIDTH)
-            this.move(-WIDTH, 0);
-        if (this.Barycenter.x < 0)
-            this.move(WIDTH, 0);
+        this.wrap_object();
+    }
 
-        if (this.Barycenter.y > HEIGHT)
-            this.move(0, -HEIGHT);
-        if (this.Barycenter.y < 0)
-            this.move(0, HEIGHT);
+    wrap_object() {
+        let dx = WIDTH + this.Size;
+        let dy = HEIGHT + this.Size;
+
+        if (this.Barycenter.x < -this.Size / 2)
+            this.move(dx, 0);
+
+        if (this.Barycenter.x > WIDTH + this.Size / 2)
+            this.move(-dx, 0);
+
+        if (this.Barycenter.y < -this.Size / 2)
+            this.move(0, dy);
+
+        if (this.Barycenter.y > HEIGHT + this.Size / 2)
+            this.move(0, -dy);
     }
 }
 
@@ -114,6 +124,8 @@ export class Ship extends Object {
         super.updatePos();
     }
 }
+
+
 
 
 //TODO Add Ownership to bullets
