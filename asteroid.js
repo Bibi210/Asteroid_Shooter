@@ -1,5 +1,5 @@
 import { gen_poly_concave, Point, Rand_Between } from "./lib.js";
-import { CENTER, HEIGHT, WIDTH } from "./test.js";
+import { CENTER, HEIGHT, WIDTH } from "./main.js";
 
 // let CONVEXE = 0;
 let CONCAVE = 1;
