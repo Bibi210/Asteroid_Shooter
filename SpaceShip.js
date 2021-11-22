@@ -8,14 +8,13 @@ export class Object extends Polygon {
     speed = new Point(0, 0);
     frottement_rate = 1;
     accel_rate = 0;
-    constructor(Point_List, scale) {
-        super(Point_List);
+    constructor(Shape, scale) {
+        super(Shape);
         this.scale(scale);
     }
     updatePos() {
         this.current_direction = (this.current_direction + this.rot_speed) % 360;
-        this.rotate(this.rot_speed);
-
+        this.rotate(this.rot_speed)
         if (this.speed.x)
             this.speed.x *= this.frottement_rate;
         if (this.speed.y)
@@ -76,7 +75,6 @@ export class Ship extends Object {
         let accel_y = this.accel_rate * -Math.sin(rad_current_angle);
         if (Math.abs(this.speed.x) + Math.abs(this.speed.y) < 3)
             this.speed = this.speed.add(new Point(accel_x, accel_y));
-
     }
     shoot() {
         let rad_current_angle = to_radians(+90 + this.current_direction);
@@ -84,11 +82,12 @@ export class Ship extends Object {
         let accel_y = 1 * -Math.sin(rad_current_angle);
         let new_bullet = new Bullet(0, new Point(accel_x + this.speed.x, accel_y + this.speed.y), 5);
         new_bullet.move(this.Start_Point.x, this.Start_Point.y);
-        new_bullet.Color = random_rgb();
-        if (bullets.length && bullets[bullets.length - 1].bullets_duration < 250)
-            bullets.push(new_bullet);
+        new_bullet.Color = this.Color;
 
-        if (!bullets.length)
+        let index = bullets.length - 1;
+        for (; index >= 0 && (bullets[index].Color != this.Color); index--) {
+        }
+        if (index == -1 || bullets[index].bullets_duration < 250)
             bullets.push(new_bullet);
     }
     input_manage() {
@@ -114,8 +113,3 @@ export class Ship extends Object {
         super.updatePos();
     }
 }
-
-
-//TODO Add Ownership to bullets
-
-

@@ -69,15 +69,15 @@ export class Segment {
 }
 
 export class Polygon {
-    constructor(Point_List, Size = 0, Vx = 0, Vy = 0, color = "rgb(0,0,0)") {
-        this.Point_List = Point_List;
-        this.Start_Point = Point_List[0];
+    constructor(Point_List, Vx = 0, Vy = 0, color = "rgb(0,0,0)") {
+        this.Point_List = JSON.parse(JSON.stringify(Point_List));
+        this.Start_Point = this.Point_List[0];
         this.Vx = Vx;
         this.Vy = Vy;
-        this.Size = Size;
         this.Barycenter = new Point(0, 0);
         this.calculateBarycenter();
         this.Color = color;
+        this.calculateSize();
     }
 
     calculateBarycenter() {
@@ -90,6 +90,15 @@ export class Polygon {
         });
         this.Barycenter.x /= nb;
         this.Barycenter.y /= nb;
+    }
+    calculateSize() {
+        let biggest_distance = 0;
+        this.Point_List.forEach(element => {
+            let current_dist = this.Barycenter.distance(element);
+            if (current_dist > biggest_distance)
+                biggest_distance = current_dist;
+        });
+        this.Size = biggest_distance;
     }
 
     draw(ctx) {
@@ -180,6 +189,7 @@ export class Polygon {
                 element.y -= k * (this.Barycenter.y - element.y);
             });
         }
+        this.calculateSize();
     }
 }
 
@@ -205,7 +215,7 @@ export function gen_poly_concave(x, y, nb_side, size_max) {
     let center = new Polygon(points).Barycenter;
     points.sort((A, B) => center.angle(A) - center.angle(B));
 
-    let output_poly = new Polygon(points, size_max);
+    let output_poly = new Polygon(points);
 
     // not working
     // for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {

@@ -64,7 +64,6 @@ export function spawn_asteroid(lvl, pos = undefined) {
 function wrap_asteroid(asteroid) {
     let dx = WIDTH + asteroid.poly.Size;
     let dy = HEIGHT + asteroid.poly.Size;
-
     if (asteroid.poly.Barycenter.x < -asteroid.poly.Size / 2)
         asteroid.poly.move(dx, 0);
 
