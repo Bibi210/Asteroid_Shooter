@@ -222,7 +222,6 @@ export function gen_poly_concave(x, y, nb_side, size_max) {
     for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
         const Point_A = output_poly.Point_List[j];
         const Point_B = output_poly.Point_List[i];
-
         let angle_between_pt = Point_B.angle(Point_A);
 
         if (angle_between_pt < 60) {

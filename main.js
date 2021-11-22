@@ -14,7 +14,7 @@ export let WIDTH = cnv.width;
 export let HEIGHT = cnv.height;
 export let CENTER = new Point(WIDTH / 2, HEIGHT / 2)
 
-let ASTEROID_COUNT = 5;
+let ASTEROID_COUNT = 10;
 
 let asteroids = [];
 let particules = [];
