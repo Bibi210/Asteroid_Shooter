@@ -70,7 +70,7 @@ export class Segment {
 
 export class Polygon {
     constructor(Point_List, Vx = 0, Vy = 0, color = "rgb(0,0,0)") {
-        this.Point_List = JSON.parse(JSON.stringify(Point_List));
+        this.Point_List = Point_List;
         this.Start_Point = this.Point_List[0];
         this.Vx = Vx;
         this.Vy = Vy;
@@ -222,6 +222,8 @@ export function gen_poly_concave(x, y, nb_side, size_max) {
     for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
         const Point_A = output_poly.Point_List[j];
         const Point_B = output_poly.Point_List[i];
+
+        console.log(Point_A,Point_B);
         let angle_between_pt = Point_B.angle(Point_A);
 
         if (angle_between_pt < 60) {

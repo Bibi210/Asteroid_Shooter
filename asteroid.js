@@ -29,7 +29,6 @@ export class Asteroid extends Object {
         this.speed = better_direction(speed_from_lvl(lvl), pos); // rand_direction(this.speed);
         this.lvl = lvl
     }
-
     move_asteroid() {
         // Move asteroid
         this.updatePos();
