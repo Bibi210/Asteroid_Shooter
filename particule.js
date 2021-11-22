@@ -1,4 +1,4 @@
-import { rand_direction } from "./asteroid.js";
+import { better_direction } from "./asteroid.js";
 import { Point, Rand_Between } from "./lib.js"
 
 let MAX_LIFETIME = 50;
@@ -9,10 +9,10 @@ export let MIN_PARTICULES = 5;
 
 
 export class Particule extends Point {
-    constructor(pos) {
+    constructor(pos, dir) {
         super(pos.x, pos.y)
         this.lifetime = Math.floor(Rand_Between(MIN_LIFETIME, MAX_LIFETIME + 1))
-        this.direction = rand_direction(Math.random() + 1);
+        this.direction = better_direction(Math.random() + 1, dir);
     }
 
     move_particule() {

@@ -26,7 +26,7 @@ export class Asteroid extends Object {
             super(poly.Point_List, 0)
         this.Size = poly.Size; 
         this.Color = COLOR[lvl];
-        this.speed = better_direction(speed_from_lvl(lvl), pos); // rand_direction(this.speed);
+        this.speed = better_direction(speed_from_lvl(lvl), pos);
         this.lvl = lvl
     }
     move_asteroid() {
@@ -48,7 +48,7 @@ export function move_asteroids(asteroids) {
 }
 
 export function spawn_asteroid(lvl, pos = undefined) {
-    let size = 1 / (LVL_MAX - lvl) * 200 // FIND A BETTER WAY TO SIZE
+    let size = 1 / (LVL_MAX - lvl) * 200 
 
     if (!pos)
         pos = rand_position_on_side(size);
@@ -90,10 +90,11 @@ function push_verticaly(y, size) {
     return y;
 }
 
-export function rand_direction(speed) {
-    let a = Math.floor(Rand_Between(0, 361)) * Math.PI / 180;
-    return new Point(speed * Math.sin(a), speed * Math.cos(a));
-}
+// Can maybe be useful
+// export function rand_direction(speed) {
+//     let a = Math.floor(Rand_Between(0, 361)) * Math.PI / 180;
+//     return new Point(speed * Math.sin(a), speed * Math.cos(a));
+// }
 
 export function better_direction(speed, pos) {
     let a = get_angle(CENTER, pos);
@@ -106,7 +107,7 @@ function get_angle(A, O) {
 }
 
 function rand_angle_from_dispersion(min, dispersion) {
-    let a = to_radian(Rand_Between(0, dispersion)) + to_radian(90);
+    let a = to_radian(Rand_Between(0, dispersion)) + to_radian(270);
     return (min + a);
 }
 
