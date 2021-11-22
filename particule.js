@@ -8,16 +8,16 @@ export let MAX_PARTICULES = 10;
 export let MIN_PARTICULES = 5;
 
 
-export class Particule {
+export class Particule extends Point{
     constructor(pos) {
-        this.mesh = new Point(pos.x, pos.y);
+        super(pos.x, pos.y)
         this.lifetime = Math.floor(Rand_Between(MIN_LIFETIME, MAX_LIFETIME + 1))
         this.direction = rand_direction(Math.random() + 1);
     }
 
     move_particule() {
-        this.mesh.x += this.direction.x;
-        this.mesh.y += this.direction.y;
+        this.x += this.direction.x;
+        this.y += this.direction.y;
     }
 }
 
@@ -35,7 +35,7 @@ export function draw_particules(particules, ctx) {
     let to_delete = []
 
     for (let i = 0; i < particules.length; i++) {
-        particules[i].mesh.draw(ctx);
+        particules[i].draw(ctx);
         particules[i].lifetime -= 1;
         if (particules[i].lifetime < 0)
             to_delete.push(i);

@@ -1,13 +1,7 @@
-let cnv = document.getElementById("Canvas");
-cnv.width = window.innerWidth;
-cnv.height = window.innerHeight;
-let ctx = cnv.getContext("2d");
-console.log("Window\n", "width =", cnv.width, "height =", cnv.height);
-let fps = 300;
+import { Polygon, Point, random_rgb, to_radians } from "./lib.js"
+import { HEIGHT, key_pressed, WIDTH, bullet_points, bullets } from "./main.js"
 
-import { Polygon, Point, random_rgb, to_radians, Rectangle } from "./lib.js"
-
-class Object extends Polygon {
+export class Object extends Polygon {
     current_direction = 0;
     rot_speed = 0;
     accel = new Point(0, 0);
@@ -28,19 +22,19 @@ class Object extends Polygon {
             this.speed.y *= this.frottement_rate;
         this.move(this.speed.x, this.speed.y);
 
-        if (this.Barycenter.x > cnv.width)
-            this.move(-cnv.width, 0);
+        if (this.Barycenter.x > WIDTH)
+            this.move(-WIDTH, 0);
         if (this.Barycenter.x < 0)
-            this.move(cnv.width, 0);
+            this.move(WIDTH, 0);
 
-        if (this.Barycenter.y > cnv.height)
-            this.move(0, -cnv.height);
+        if (this.Barycenter.y > HEIGHT)
+            this.move(0, -HEIGHT);
         if (this.Barycenter.y < 0)
-            this.move(0, cnv.height);
+            this.move(0, HEIGHT);
     }
 }
 
-class Bullet extends Object {
+export class Bullet extends Object {
     bullets_duration = 300;
     constructor(type, speed, scale) {
         let shape = JSON.parse(JSON.stringify(bullet_points[type]));
@@ -54,7 +48,7 @@ class Bullet extends Object {
 }
 
 
-class Ship extends Object {
+export class Ship extends Object {
     constructor(ship_points, scale, keys) {
         super(JSON.parse(JSON.stringify(ship_points)), scale);
         this.accel = new Point(0, 0);
@@ -121,56 +115,7 @@ class Ship extends Object {
     }
 }
 
-function keydown_callback(event) {
-    if (!key_pressed.some(i => i == event.key))
-        key_pressed.push(event.key);
-}
-function keyup_callback(event) {
-    key_pressed = key_pressed.filter(i => i != event.key);
-}
-
-function draw() {
-    ctx.clearRect(0, 0, cnv.width, cnv.height);
-    bullets.forEach(element => element.draw(ctx));
-    ships.forEach(element => element.draw(ctx));
-}
-
-function update() {
-    draw();
-    ships.forEach(element => element.update_ship());
-    for (let index = 0; index < bullets.length; index++) {
-        bullets[index].update();
-        if (!bullets[index].bullets_duration)
-            bullets.splice(index, 1);
-    }
-    console.log(key_pressed);
-}
-
-let ship_points = [new Point(0, 0), new Point(-3, 5), new Point(0, 3), new Point(3, 5)];
-let bullet_points = [new Rectangle(new Point(0, 0), 1, 1).Point_List];
-
-let ship_A_keys = ['z', 'q', 's', 'd', ' '];
-let ship_B_keys = ['o', 'k', 'l', 'm', 'Enter'];
-
-
-let key_pressed = [];
-let bullets = [];
-let ships = [];
-
-let ship_A = new Ship(ship_points, 5, ship_A_keys);
-ship_A.move(cnv.width / 2, cnv.height / 2);
-ship_A.Color = random_rgb();
-ships.push(ship_A);
-
-let ship_B = new Ship(ship_points, 5, ship_B_keys);
-ship_B.move(cnv.width / 2, cnv.height / 2);
-ship_B.Color = random_rgb();
-ships.push(ship_B);
 
 //TODO Add Ownership to bullets
-
-addEventListener("keypress", keydown_callback);
-addEventListener("keyup", keyup_callback);
-setInterval(update, 1000 / fps);
 
 

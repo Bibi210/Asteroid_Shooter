@@ -157,7 +157,3 @@ function speed_from_lvl(lvl) {
 function to_radian(angle) {
     return angle * Math.PI / 180
 }
-
-function to_degree(angle) {
-    return angle * 180 / Math.PI
-}
