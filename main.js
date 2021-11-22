@@ -1,7 +1,7 @@
 import { draw_asteroids, LVL_MAX, move_asteroids, spawn_asteroid } from "./asteroid.js";
 import { Point, Rectangle, random_rgb } from "./lib.js";
 import { draw_particules, move_particules } from "./particule.js";
-import { Ship} from "./SpaceShip.js"
+import { Ship } from "./SpaceShip.js"
 
 let cnv = document.getElementById("Canvas");
 cnv.width = window.innerWidth;
@@ -78,12 +78,22 @@ function update_pos() {
     }
 }
 
-function check_colision() {
-    
+function process_collisions() {
+    bullets.forEach(bullet => {
+        for (let index = 0; index < asteroids.length; index++) {
+            const rock = asteroids[index];
+            if (bullet.Collide(rock)) {
+                bullets.splice(bullets.indexOf(bullet), 1);
+                asteroids.splice(index, 1);
+                // Particules
+            }
+        }
+    });
 }
 
 function game() {
     update_pos();
+    process_collisions();
     draw_elements();
 }
 
