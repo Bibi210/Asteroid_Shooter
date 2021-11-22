@@ -7,8 +7,6 @@ let fps = 300;
 
 import { Polygon, Point, random_rgb, to_radians, Rectangle } from "./lib.js"
 
-let ship_points = [new Point(0, 0), new Point(-3, 5), new Point(0, 3), new Point(3, 5)];
-let bullet_points = [new Rectangle(new Point(0, 0), 1, 1).Point_List];
 class Object extends Polygon {
     current_direction = 0;
     rot_speed = 0;
@@ -57,12 +55,13 @@ class Bullet extends Object {
 
 
 class Ship extends Object {
-    constructor(ship_points, scale) {
+    constructor(ship_points, scale, keys) {
         super(JSON.parse(JSON.stringify(ship_points)), scale);
         this.accel = new Point(0, 0);
         this.speed = new Point(0, 0);
         this.frottement_rate = 0.9988;
         this.accel_rate = 0.002;
+        this.controls = keys;
     }
     left() {
         this.rot_speed = 0.5;
@@ -99,8 +98,8 @@ class Ship extends Object {
             bullets.push(new_bullet);
     }
     input_manage() {
-        let go_left = key_pressed.some(i => i == 'q');
-        let go_right = key_pressed.some(i => i == 'd');
+        let go_left = key_pressed.some(i => i == this.controls[1]);
+        let go_right = key_pressed.some(i => i == this.controls[3]);
         if (go_left && go_right || (!go_left && !go_right))
             this.no_spin();
         else {
@@ -109,11 +108,11 @@ class Ship extends Object {
             if (go_right)
                 this.right();
         }
-        if (key_pressed.some(i => i == 'z'))
+        if (key_pressed.some(i => i == this.controls[0]))
             this.forward();
-        if (key_pressed.some(i => i == 's'))
+        if (key_pressed.some(i => i == this.controls[2]))
             this.break();
-        if (key_pressed.some(i => i == ' '))
+        if (key_pressed.some(i => i == this.controls[4]))
             this.shoot();
     }
     update_ship() {
@@ -121,12 +120,6 @@ class Ship extends Object {
         super.updatePos();
     }
 }
-
-let ship = new Ship(ship_points, 5);
-ship.move(cnv.width / 2, cnv.height / 2);
-ship.Color = random_rgb();
-let key_pressed = [];
-let bullets = [];
 
 function keydown_callback(event) {
     if (!key_pressed.some(i => i == event.key))
@@ -139,20 +132,42 @@ function keyup_callback(event) {
 function draw() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     bullets.forEach(element => element.draw(ctx));
-    ship.draw(ctx);
+    ships.forEach(element => element.draw(ctx));
 }
 
 function update() {
-    console.log(key_pressed);
     draw();
-    ship.update_ship();
-
+    ships.forEach(element => element.update_ship());
     for (let index = 0; index < bullets.length; index++) {
         bullets[index].update();
         if (!bullets[index].bullets_duration)
             bullets.splice(index, 1);
     }
+    console.log(key_pressed);
 }
+
+let ship_points = [new Point(0, 0), new Point(-3, 5), new Point(0, 3), new Point(3, 5)];
+let bullet_points = [new Rectangle(new Point(0, 0), 1, 1).Point_List];
+
+let ship_A_keys = ['z', 'q', 's', 'd', ' '];
+let ship_B_keys = ['o', 'k', 'l', 'm', 'Enter'];
+
+
+let key_pressed = [];
+let bullets = [];
+let ships = [];
+
+let ship_A = new Ship(ship_points, 5, ship_A_keys);
+ship_A.move(cnv.width / 2, cnv.height / 2);
+ship_A.Color = random_rgb();
+ships.push(ship_A);
+
+let ship_B = new Ship(ship_points, 5, ship_B_keys);
+ship_B.move(cnv.width / 2, cnv.height / 2);
+ship_B.Color = random_rgb();
+ships.push(ship_B);
+
+//TODO Add Ownership to bullets
 
 addEventListener("keypress", keydown_callback);
 addEventListener("keyup", keyup_callback);
