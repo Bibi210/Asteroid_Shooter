@@ -61,7 +61,6 @@ export function spawn_asteroid(lvl, pos = undefined) {
     return a;
 }
 
-// TODO Update with colision
 export function spawn_on_colision(asteroids, spawn_count) {
     if (!asteroids.length) {
         return
