@@ -8,7 +8,7 @@ export let MAX_PARTICULES = 10;
 export let MIN_PARTICULES = 5;
 
 
-export class Particule extends Point{
+export class Particule extends Point {
     constructor(pos) {
         super(pos.x, pos.y)
         this.lifetime = Math.floor(Rand_Between(MIN_LIFETIME, MAX_LIFETIME + 1))
