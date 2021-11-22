@@ -1,4 +1,4 @@
-import { draw_asteroids, move_asteroids, RANDO, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
+import { draw_asteroids, LVL_MAX, move_asteroids, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
 import { Point, Rand_Between } from "./lib.js";
 import { draw_particules, MAX_PARTICULES, MIN_PARTICULES, move_particules, spawn_particules } from "./particule.js";
 
@@ -11,12 +11,14 @@ export let WIDTH = cnv.width;
 export let HEIGHT = cnv.height;
 export let CENTER = new Point(WIDTH / 2, HEIGHT / 2)
 
+let ASTEROID_COUNT = 20;
+
 let asteroids = [];
 let particules = [];
 
 function init() {
-    for (let i = 0; i < 1; i++) {
-        asteroids.push(spawn_asteroid(RANDO, 5))
+    for (let i = 0; i < ASTEROID_COUNT; i++) {
+        asteroids.push(spawn_asteroid(5))
     }
 }
 
@@ -24,7 +26,7 @@ function draw_elements() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
 
     draw_asteroids(asteroids, ctx);
-    
+
     if (particules.length)
         draw_particules(particules, ctx)
 }

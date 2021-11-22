@@ -1,31 +1,29 @@
 import { gen_poly_concave, Point, Rand_Between } from "./lib.js";
 import { CENTER, HEIGHT, WIDTH } from "./test.js";
 
-let CONVEXE = 0;
+// let CONVEXE = 0;
 let CONCAVE = 1;
 
-export let RANDO = 1;
-export let GIVEN = 0;
-
-let LVL_MAX = 6;
+export let LVL_MAX = 6;
 let MAX_SPEED = 4;
 let MIN_SPEED = 0.1;
+let DISPERSION = 180;
 
-let COLOR = [
-    "rgb(37, 150, 190)", // Jaune
-    "rgb(37, 150, 190)", // Orange
-    "rgb(190, 49, 68)", // Rouge
-    "rgb(122, 108, 93)", // Gris
-    "rgb(83, 53, 73)", // Gris foncé
-    "rgb(32, 37, 71)" // Bleu Marine
-];
+// let COLOR = [
+//     "rgb(37, 150, 190)", //, Math.) Jaune
+//     "rgb(37, 150, 190)", // Orange
+//     "rgb(190, 49, 68)", // Rouge
+//     "rgb(122, 108, 93)", // Gris
+//     "rgb(83, 53, 73)", // Gris foncé
+//     "rgb(32, 37, 71)" // Bleu Marine
+// ];
 
 export class Asteroid {
     constructor(pos, side_count, max_size, lvl, mode) {
         if (mode == CONCAVE)
             this.poly = gen_poly_concave(pos.x, pos.y, side_count, max_size);
         this.speed = speed_from_lvl(lvl);
-        this.direction = rand_direction(this.speed);
+        this.direction = better_direction(this.speed, pos); // rand_direction(this.speed);
         this.lvl = lvl
     }
 
@@ -50,11 +48,11 @@ export function move_asteroids(asteroids) {
     });
 }
 
-export function spawn_asteroid(mode, lvl, pos = new Point(0, 0)) {
+export function spawn_asteroid(lvl, pos = undefined) {
     let size = 1 / (LVL_MAX - lvl) * 100 // FIND A BETTER WAY TO SIZE
 
-    if (mode)
-        pos = rand_position(size);
+    if (!pos)
+        pos = rand_position_on_side(size);
 
     // instantiate an asteroid
     let a = new Asteroid(pos, 10, size, lvl, CONCAVE);
@@ -115,7 +113,22 @@ export function rand_direction(speed) {
     return new Point(speed * Math.sin(a), speed * Math.cos(a));
 }
 
-function rand_position(size) {
+export function better_direction(speed, pos) {
+    let a = get_angle(CENTER, pos);
+    let d = rand_angle_from_dispersion(a - to_radian(DISPERSION / 2), DISPERSION);
+    return new Point(speed * Math.sin(d), speed * Math.cos(d));
+}
+
+function get_angle(A, O) {
+    return (to_radian(360) - Math.atan2(A.y - O.y, A.x - O.x)) % to_radian(360);
+}
+
+function rand_angle_from_dispersion(min, dispersion) {
+    let a = to_radian(Rand_Between(0, dispersion)) + to_radian(90);
+    return (min + a);
+}
+
+function rand_position_on_side(size) {
     let x = Rand_Between(0, WIDTH + 1);
     let y = Rand_Between(0, HEIGHT + 1);
 
@@ -139,4 +152,12 @@ function random_element(length) {
 function speed_from_lvl(lvl) {
     let k = (MAX_SPEED - MIN_SPEED) / LVL_MAX;
     return MIN_SPEED + (k * (LVL_MAX - lvl));
+}
+
+function to_radian(angle) {
+    return angle * Math.PI / 180
+}
+
+function to_degree(angle) {
+    return angle * 180 / Math.PI
 }
