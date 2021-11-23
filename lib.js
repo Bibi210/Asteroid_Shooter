@@ -9,14 +9,15 @@ export function to_radians(angle) {
     return angle * (Math.PI / 180);
 }
 export class Point {
-    constructor(x, y, color = "rgb(0,0,0)") {
+    constructor(x, y, size = 0, color = "rgb(0,0,0)") {
         this.x = x;
         this.y = y;
         this.color = color;
+        this.size = size
     }
     draw(ctx) {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 5, 0, 2 * Math.PI, true);
+        ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI, true);
         ctx.fillStyle = this.color;
         ctx.fill();
         ctx.closePath();
@@ -69,11 +70,9 @@ export class Segment {
 }
 
 export class Polygon {
-    constructor(Point_List, Vx = 0, Vy = 0, color = "rgb(0,0,0)") {
+    constructor(Point_List, color) {
         this.Point_List = Point_List;
         this.Start_Point = this.Point_List[0];
-        this.Vx = Vx;
-        this.Vy = Vy;
         this.Barycenter = new Point(0, 0);
         this.calculateBarycenter();
         this.Color = color;
@@ -162,9 +161,6 @@ export class Polygon {
         });
         this.Barycenter.x += x
         this.Barycenter.y += y
-    }
-    updatePos() {
-        this.move(this.Vx, this.Vy);
     }
     rotate(angle) {
         let O = this.Barycenter;

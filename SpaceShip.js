@@ -8,8 +8,8 @@ export class Object extends Polygon {
     speed = new Point(0, 0);
     frottement_rate = 1;
     accel_rate = 0;
-    constructor(Shape, scale) {
-        super(Shape);
+    constructor(Shape, scale, color) {
+        super(Shape, color);
         this.scale(scale);
     }
 
@@ -45,10 +45,11 @@ export class Object extends Polygon {
 
 export class Bullet extends Object {
     bullets_duration = 300;
-    constructor(type, speed, scale) {
+    constructor(type, speed, scale , player) {
         let shape = JSON.parse(JSON.stringify(bullet_points[type]));
         super(shape, scale);
         this.speed = JSON.parse(JSON.stringify(speed));
+        this.id = player
     }
     update() {
         this.bullets_duration--;
@@ -58,8 +59,8 @@ export class Bullet extends Object {
 
 
 export class Ship extends Object {
-    constructor(ship_points, scale, keys) {
-        super(JSON.parse(JSON.stringify(ship_points)), scale);
+    constructor(ship_points, scale, keys, color) {
+        super(JSON.parse(JSON.stringify(ship_points)), scale, color);
         this.accel = new Point(0, 0);
         this.speed = new Point(0, 0);
         this.frottement_rate = 0.9988;
@@ -86,11 +87,11 @@ export class Ship extends Object {
         if (Math.abs(this.speed.x) + Math.abs(this.speed.y) < 3)
             this.speed = this.speed.add(new Point(accel_x, accel_y));
     }
-    shoot() {
+    shoot(player) {
         let rad_current_angle = to_radians(+90 + this.current_direction);
         let accel_x = 1 * Math.cos(rad_current_angle);
         let accel_y = 1 * -Math.sin(rad_current_angle);
-        let new_bullet = new Bullet(0, new Point(accel_x + this.speed.x, accel_y + this.speed.y), 5);
+        let new_bullet = new Bullet(0, new Point(accel_x + this.speed.x, accel_y + this.speed.y), 5, player);
         new_bullet.move(this.Start_Point.x, this.Start_Point.y);
         new_bullet.Color = this.Color;
 
@@ -100,7 +101,7 @@ export class Ship extends Object {
         if (index == -1 || bullets[index].bullets_duration < 250)
             bullets.push(new_bullet);
     }
-    input_manage() {
+    input_manage(player) {
         let go_left = key_pressed.some(i => i == this.controls[1]);
         let go_right = key_pressed.some(i => i == this.controls[3]);
         if (go_left && go_right || (!go_left && !go_right))
@@ -116,10 +117,10 @@ export class Ship extends Object {
         if (key_pressed.some(i => i == this.controls[2]))
             this.break();
         if (key_pressed.some(i => i == this.controls[4]))
-            this.shoot();
+            this.shoot(player);
     }
-    update_ship() {
-        this.input_manage();
+    update_ship(player) {
+        this.input_manage(player);
         super.updatePos();
     }
 }

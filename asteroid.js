@@ -8,25 +8,25 @@ let CONCAVE = 1;
 export let LVL_MAX = 6;
 let MAX_SPEED = 0.5;
 let MIN_SPEED = 0.1;
-let DISPERSION = 180;
+let DISPERSION = 160;
 
 let COLOR = [
-    "#65010c",
-    "#cb1b16", 
-    "#ef3c2d", 
+    "#fedfd4",
+    "#cb1b16",
+    "#ef3c2d",
     "#f26a4f",
-    "#f29479", 
-    "#fedfd4", 
+    "#f29479",
+    "#65010c",
 ];
 
 export class Asteroid extends Object {
-    constructor(pos, side_count, max_size, lvl, mode) {
+    constructor(pos, dir, side_count, max_size, lvl, mode) {
         let poly = gen_poly_concave(pos.x, pos.y, side_count, max_size);
         if (mode == CONCAVE)
             super(poly.Point_List, 0)
-        this.Size = poly.Size; 
+        this.Size = poly.Size;
         this.Color = COLOR[lvl];
-        this.speed = better_direction(speed_from_lvl(lvl), pos);
+        this.speed = better_direction(speed_from_lvl(lvl), dir);
         this.lvl = lvl
     }
     move_asteroid() {
@@ -47,37 +47,33 @@ export function move_asteroids(asteroids) {
     });
 }
 
-export function spawn_asteroid(lvl, pos = undefined) {
-    let size = 1 / (LVL_MAX - lvl) * 200 
+export function spawn_asteroid(lvl, dir = undefined, pos = undefined) {
+    let size = 1 / (LVL_MAX - lvl) * 200
 
     if (!pos)
         pos = rand_position_on_side(size);
+    if (!dir)
+        dir = pos;
 
     // instantiate an asteroid
-    let a = new Asteroid(pos, 10, size, lvl, CONCAVE);
+    let a = new Asteroid(pos, dir, 10, size, lvl, CONCAVE);
 
     // return the asteroid
     return a;
 }
 
-export function spawn_on_colision(asteroids, spawn_count) {
-    if (!asteroids.length) {
-        return
-    }
-
-    // Choose a random asteroids
-    let idx = random_element(asteroids.length)
-
-    // get the position of the destroyed asteroids
-    let rm_a = asteroids.splice(idx, 1)
-    let new_pos = new Point(rm_a[0].Barycenter.x - rm_a[0].Size / 2, rm_a[0].Barycenter.y - rm_a[0].Size / 2)
+export function spawn_on_colision(destroyed_asteroid, bullet, spawn_count = 2) {
+    let new_asteroids = [];
 
     // instantiate new asteroids
-    if (rm_a[0].lvl != 0) {
-        for (let i = 0; i < spawn_count; i++) {
-            asteroids.push(spawn_asteroid(GIVEN, rm_a[0].lvl - 1, new_pos))
+    if (destroyed_asteroid.lvl != 0) {
+        while (spawn_count) {
+            new_asteroids.push(spawn_asteroid(destroyed_asteroid.lvl - 1, bullet.Barycenter, destroyed_asteroid.Barycenter));
+            spawn_count -= 1;
         }
     }
+
+    return new_asteroids;
 }
 
 function push_horizontaly(x, size) {
