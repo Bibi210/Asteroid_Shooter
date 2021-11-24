@@ -9,11 +9,11 @@ export function to_radians(angle) {
     return angle * (Math.PI / 180);
 }
 export class Point {
-    constructor(x, y, size = 0, color = "rgb(0,0,0)") {
+    constructor(x, y, size = 0, color = random_rgb()) {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.size = size
+        this.size = size;
     }
     draw(ctx) {
         ctx.beginPath();
@@ -39,9 +39,10 @@ export class Point {
 }
 
 export class Segment {
-    constructor(Point_A, Point_B) {
+    constructor(Point_A, Point_B, Color = random_rgb()) {
         this.A = Point_A;
         this.B = Point_B;
+        this.Color = Color;
     }
     cw(c) {
         return (this.B.x - this.A.x) * (c.y - this.A.y) - (this.B.y - this.A.y) * (c.x - this.A.x);
@@ -66,6 +67,14 @@ export class Segment {
     Rey_Cross_Seg(Point) { //Utile pour le point in Polygon
         return ((this.A.y > Point.y) != (this.B.y > Point.y))
             && (Point.x < (this.B.x - this.A.x) * (Point.y - this.A.y) / (this.B.y - this.A.y) + this.A.x);
+    }
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.moveTo(this.A.x, this.A.y);
+        ctx.lineTo(this.B.x, this.B.y);
+        ctx.strokeStyle = this.Color;
+        ctx.stroke();
+        ctx.closePath();
     }
 }
 
@@ -110,7 +119,6 @@ export class Polygon {
         ctx.strokeStyle = this.Color;
         ctx.stroke();
         ctx.closePath();
-        this.updatePos();
     }
     Point_inside(A) {
         let inside = false;
@@ -161,6 +169,14 @@ export class Polygon {
         });
         this.Barycenter.x += x
         this.Barycenter.y += y
+    }
+    teleport(x, y) {
+        this.Point_List.forEach(elem => {
+            elem.x = x + (elem.x - this.Barycenter.x);
+            elem.y = y + (elem.y - this.Barycenter.y);
+        });
+        this.Barycenter.x = x;
+        this.Barycenter.y = y;
     }
     rotate(angle) {
         let O = this.Barycenter;
@@ -214,7 +230,7 @@ export function gen_poly_concave(x, y, nb_side, size_max) {
     let output_poly = new Polygon(points);
 
     // not working
-    let to_delete = []; 
+    let to_delete = [];
     for (let i = 0, j = output_poly.Point_List.length - 1; i < output_poly.Point_List.length; j = i++) {
         const Point_A = output_poly.Point_List[j];
         const Point_B = output_poly.Point_List[i];

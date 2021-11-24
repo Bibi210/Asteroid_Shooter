@@ -1,6 +1,9 @@
 import { Polygon, Point, random_rgb, to_radians } from "./lib.js"
-import { HEIGHT, key_pressed, WIDTH, bullet_points, bullets } from "./main.js"
+import { CENTER, HEIGHT, key_pressed, WIDTH, bullet_points, bullets, buffs, shield_points } from "./main.js"
 
+let BULLET_LIFETIME = 300;
+let Gatling = 0;
+let Big_Bullet = 1;
 export class Object extends Polygon {
     current_direction = 0;
     rot_speed = 0;
@@ -9,7 +12,7 @@ export class Object extends Polygon {
     frottement_rate = 1;
     accel_rate = 0;
     constructor(Shape, scale, color) {
-        super(Shape, color);
+        super(JSON.parse(JSON.stringify(Shape)), color);
         this.scale(scale);
     }
 
@@ -44,8 +47,8 @@ export class Object extends Polygon {
 }
 
 export class Bullet extends Object {
-    bullets_duration = 300;
-    constructor(type, speed, scale , player) {
+    bullets_duration = BULLET_LIFETIME;
+    constructor(type, speed, scale, player) {
         let shape = JSON.parse(JSON.stringify(bullet_points[type]));
         super(shape, scale);
         this.speed = JSON.parse(JSON.stringify(speed));
@@ -58,14 +61,63 @@ export class Bullet extends Object {
 }
 
 
+
+export class Buff {
+    buff_duration = 0;
+    constructor(type, player) {
+        this.type = type;
+        this.owner = player;
+        this.apply_buff(this.owner);
+    }
+    apply_buff() {
+        switch (this.type) {
+            case Gatling:
+                this.buff_duration = 3000;
+                this.owner.cooling = 15;
+                break;
+            case Big_Bullet:
+                this.buff_duration = 3000;
+                this.owner.bullets_size = 20;
+            default:
+                break;
+        }
+    }
+    remove_buff() {
+        switch (this.type) {
+            case Gatling:
+                this.owner.cooling = 50;
+                break;
+            case Big_Bullet:
+                this.owner.bullets_size = 5;
+                break
+            default:
+                break;
+        }
+    }
+    update_buff() {
+        this.buff_duration--;
+        if (this.buff_duration <= 0)
+            this.remove_buff();
+    }
+}
+
+
+
 export class Ship extends Object {
     constructor(ship_points, scale, keys, color) {
         super(JSON.parse(JSON.stringify(ship_points)), scale, color);
+        this.controls = keys;
+
+
         this.accel = new Point(0, 0);
         this.speed = new Point(0, 0);
         this.frottement_rate = 0.9988;
-        this.accel_rate = 0.002;
-        this.controls = keys;
+        this.accel_rate = 0.003 * 2;
+
+        this.cooling = 50;
+        this.bullets_size = 5;
+        this.shield = true;
+        this.shield_poly = new Object(shield_points, scale * 5, "rgb(0,255,0)");
     }
     left() {
         this.rot_speed = 0.5;
@@ -89,16 +141,16 @@ export class Ship extends Object {
     }
     shoot(player) {
         let rad_current_angle = to_radians(+90 + this.current_direction);
-        let accel_x = 1 * Math.cos(rad_current_angle);
-        let accel_y = 1 * -Math.sin(rad_current_angle);
-        let new_bullet = new Bullet(0, new Point(accel_x + this.speed.x, accel_y + this.speed.y), 5, player);
+        let accel_x = 2 * Math.cos(rad_current_angle);
+        let accel_y = 2 * -Math.sin(rad_current_angle);
+        let new_bullet = new Bullet(0, new Point(accel_x + this.speed.x, accel_y + this.speed.y), this.bullets_size, player);
         new_bullet.move(this.Start_Point.x, this.Start_Point.y);
         new_bullet.Color = this.Color;
 
         let index = bullets.length - 1;
         for (; index >= 0 && (bullets[index].Color != this.Color); index--) {
         }
-        if (index == -1 || bullets[index].bullets_duration < 250)
+        if (index == -1 || BULLET_LIFETIME - bullets[index].bullets_duration > this.cooling)
             bullets.push(new_bullet);
     }
     input_manage(player) {
@@ -118,9 +170,26 @@ export class Ship extends Object {
             this.break();
         if (key_pressed.some(i => i == this.controls[4]))
             this.shoot(player);
+        if (key_pressed.some(i => i == 'x')) {
+            let buff = new Buff(Big_Bullet, this);
+            buffs.push(buff);
+        }
     }
     update_ship(player) {
+        if (this.shield) {
+            this.shield_poly.teleport(this.Barycenter.x, this.Barycenter.y);
+        }
         this.input_manage(player);
         super.updatePos();
+    }
+    draw(ctx) {
+        if (this.shield)
+            this.shield_poly.draw(ctx);
+        super.draw(ctx);
+    }
+    Collide(OtherPoly) {
+        if (this.shield)
+            return this.shield_poly.Collide(OtherPoly);
+        return super.Collide(OtherPoly);
     }
 }

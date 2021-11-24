@@ -1,6 +1,6 @@
 import { draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
 import { arrow, main_menu, set_offset } from "./game.js";
-import { Point, Rectangle, random_rgb } from "./lib.js";
+import { Point, Rectangle, random_rgb, to_radians } from "./lib.js";
 import { draw_particules, move_particules, spawn_particules } from "./particule.js";
 import { Player } from "./player.js";
 
@@ -25,12 +25,19 @@ let asteroids = [];
 let particules = [];
 let ship_points = [new Point(0, 0), new Point(-3, 5), new Point(0, 3), new Point(3, 5)];
 export let bullet_points = [new Rectangle(new Point(0, 0), 1, 1).Point_List];
+export let shield_points = [];
+for (let index = 0; index < 359; index++) {
+    let posX = 0 - (1 * Math.cos(to_radians(index)));
+    let posY = 0 - (1 * Math.sin(to_radians(index)));
+    shield_points.push(new Point(posX, posY));
+}
 
 let ship_A_keys = ['z', 'q', 's', 'd', ' '];
 let ship_B_keys = ['o', 'k', 'l', 'm', 'Enter'];
 
 export let key_pressed = [];
 export let bullets = [];
+export let buffs = [];
 let players = []
 
 function init() {
@@ -96,8 +103,9 @@ function keydown_callback(event) {
             set_offset(260);
         }
     }
-    else if (!key_pressed.some(i => i == event.key))
+    else if (!key_pressed.some(i => i == event.key)) {
         key_pressed.push(event.key);
+    }
 }
 function keyup_callback(event) {
     key_pressed = key_pressed.filter(i => i != event.key);
@@ -143,17 +151,12 @@ function update_pos() {
     move_asteroids(asteroids);
     move_particules(particules);
     players.forEach(element => element.update_player());
-    for (let index = 0; index < bullets.length; index++) {
-        bullets[index].update();
-        if (!bullets[index].bullets_duration)
-            bullets.splice(index, 1);
-    }
 }
 
 function process_collisions() {
-    for (let i = 0; i < bullets.length; i++) {
-        for (let j = 0; j < asteroids.length; j++) {
-            let asteroid = asteroids[j];
+    for (let j = 0; j < asteroids.length; j++) {
+        let asteroid = asteroids[j];
+        for (let i = 0; i < bullets.length; i++) {
             let bullet = bullets[i];
             if (bullets[i].Collide(asteroid)) {
                 bullets.splice(i, 1);
@@ -164,10 +167,26 @@ function process_collisions() {
                     if (player.id == bullet.id)
                         player.score += 100 * (get_lvl_max() - asteroid.lvl);
                 });
-                return
+                i--;
+                j--;
+                break;
             }
         }
+        players.forEach(player => {
+            if (player.Collide(asteroid)) {
+                particules = particules.concat(spawn_particules(25, asteroid.Barycenter, player.Barycenter, asteroid.Color, asteroid.lvl));
+                asteroids.splice(j, 1);
+                j--;
+                if (player.shield) {
+                    player.shield = false;
+                }
+                else {
+                    player.life--;
+                }
+            }
+        });
     }
+
 }
 
 function update() {
@@ -175,11 +194,29 @@ function update() {
     players.forEach(player => {
         tot_score += player.score;
     });
-
     let difficulty = Math.floor(tot_score / DIFFICULTY_RATIO)
-
     if (asteroids.length < ASTEROID_COUNT + difficulty) {
         asteroids.push(spawn_asteroid(get_lvl_max() - LVL))
+    }
+    for (let index = 0; index < bullets.length; index++) {
+        bullets[index].update();
+        if (!bullets[index].bullets_duration)
+            bullets.splice(index, 1);
+    }
+
+    for (let index = 0; index < buffs.length; index++) {
+        buffs[index].update_buff();
+        console.log(buffs[index].buff_duration);
+        if (!buffs[index].buff_duration)
+            buffs.splice(index, 1);
+    }
+    for (let index = 0; index < players.length; index++) {
+        if (!players[index].life) {
+            players.splice(index, 1);
+        }
+    }
+    if (!players.length) {
+        STATE = 0;
     }
 }
 
