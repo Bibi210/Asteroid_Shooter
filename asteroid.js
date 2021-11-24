@@ -5,7 +5,7 @@ import { Object } from "./SpaceShip.js"
 // let CONVEXE = 0;
 let CONCAVE = 1;
 
-export let LVL_MAX = 6;
+let LVL_MAX = 6;
 let MAX_SPEED = 0.5;
 let MIN_SPEED = 0.1;
 let DISPERSION = 160;
@@ -60,6 +60,17 @@ export function spawn_asteroid(lvl, dir = undefined, pos = undefined) {
 
     // return the asteroid
     return a;
+}
+
+export function fill_asteroids(asteroid_count, lvl) {
+    console.log(LVL_MAX);
+    let asteroids = [];
+
+    for (let i = 0; i < asteroid_count; i++) {
+        asteroids.push(spawn_asteroid(LVL_MAX - lvl))
+    }
+
+    return asteroids
 }
 
 export function spawn_on_colision(destroyed_asteroid, bullet, spawn_count = 2) {
@@ -124,10 +135,6 @@ function rand_position_on_side(size) {
     return new Point(x, y);
 }
 
-function random_element(length) {
-    return Math.floor(Rand_Between(0, length))
-}
-
 function speed_from_lvl(lvl) {
     let k = (MAX_SPEED - MIN_SPEED) / LVL_MAX;
     return MIN_SPEED + (k * (LVL_MAX - lvl));
@@ -135,4 +142,12 @@ function speed_from_lvl(lvl) {
 
 function to_radian(angle) {
     return angle * Math.PI / 180
+}
+
+export function get_lvl_max() {
+    return LVL_MAX;
+}
+
+export function set_lvl_max(v) {
+    LVL_MAX = v;
 }

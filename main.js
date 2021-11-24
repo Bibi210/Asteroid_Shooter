@@ -1,8 +1,8 @@
-import { draw_asteroids, LVL_MAX, move_asteroids, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
+import { draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
+import { arrow, main_menu, set_offset } from "./game.js";
 import { Point, Rectangle, random_rgb } from "./lib.js";
 import { draw_particules, move_particules, spawn_particules } from "./particule.js";
 import { Player } from "./player.js";
-import { Ship } from "./SpaceShip.js"
 
 let cnv = document.getElementById("Canvas");
 cnv.width = window.innerWidth;
@@ -10,14 +10,16 @@ cnv.height = window.innerHeight;
 let ctx = cnv.getContext("2d");
 
 let FPS = 300;
+let STATE = 0;
+let PVP = 3;
+let DIFFICULTY_RATIO = 2000;
 
 export let WIDTH = cnv.width;
 export let HEIGHT = cnv.height;
 export let CENTER = new Point(WIDTH / 2, HEIGHT / 2);
 
-let highscore;
-
-let ASTEROID_COUNT = 5;
+let ASTEROID_COUNT = 0;
+let LVL = 0;
 
 let asteroids = [];
 let particules = [];
@@ -27,38 +29,74 @@ export let bullet_points = [new Rectangle(new Point(0, 0), 1, 1).Point_List];
 let ship_A_keys = ['z', 'q', 's', 'd', ' '];
 let ship_B_keys = ['o', 'k', 'l', 'm', 'Enter'];
 
-
 export let key_pressed = [];
 export let bullets = [];
 let players = []
 
-let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, random_rgb());
-let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, random_rgb());
-// let ship_A = new Ship(ship_points, 5, ship_A_keys);
-// let ship_B = new Ship(ship_points, 5, ship_B_keys);
-
-
 function init() {
-    for (let i = 0; i < ASTEROID_COUNT; i++) {
-        asteroids.push(spawn_asteroid(LVL_MAX - 1))
-    }
+    ASTEROID_COUNT = 10;
+    LVL = 2;
 
-    players.push(playerA);
-    players.push(playerB);
-    // ship_A.move(cnv.width / 2, cnv.height / 2);
-    // ship_A.Color = random_rgb();
-    // ships.push(ship_A);
-
-    // ship_B.move(cnv.width / 2, cnv.height / 2);
-    // ship_B.Color = random_rgb();
-    // ships.push(ship_B);
+    asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
 }
 
-console.log(players);
-
-
 function keydown_callback(event) {
-    if (!key_pressed.some(i => i == event.key))
+    if (event.key == '0' && STATE != 0) {
+        STATE = 0;
+        ASTEROID_COUNT = 10;
+        LVL = 2;
+
+        players = [];
+        asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+    }
+    if (!STATE) {
+        players = [];
+        LVL = 1;
+        if (event.key == '1') {
+            STATE = 1;
+
+            ASTEROID_COUNT = 5;
+
+            let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, random_rgb());
+            players.push(playerA);
+            asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+        }
+        else if (event.key == '2') {
+            STATE = 2;
+
+            ASTEROID_COUNT = 7;
+
+            let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
+            let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
+            players.push(playerA);
+            players.push(playerB);
+            asteroids = fill_asteroids(ASTEROID_COUNT, LVL)
+        }
+        else if (event.key == '3') {
+            STATE = 3;
+
+            ASTEROID_COUNT = 0;
+
+            let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
+            let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
+            players.push(playerA);
+            players.push(playerB);
+            asteroids = [];
+        }
+        else if (event.key == 'e') {
+            set_lvl_max(2);
+            set_offset(0);
+        }
+        else if (event.key == 'm') {
+            set_lvl_max(4);
+            set_offset(130);
+        }
+        else if (event.key == 'h') {
+            set_lvl_max(6);
+            set_offset(260);
+        }
+    }
+    else if (!key_pressed.some(i => i == event.key))
         key_pressed.push(event.key);
 }
 function keyup_callback(event) {
@@ -67,19 +105,38 @@ function keyup_callback(event) {
 
 function draw_elements() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
-    draw_asteroids(asteroids, ctx);
-    bullets.forEach(element => element.draw(ctx));
-    players.forEach(element => element.draw(ctx));
 
-    if (particules.length)
-        draw_particules(particules, ctx);
-
-    let init = 24;
+    let init_pos = 24;
     let offset = 65;
-    players.forEach(player => {
-        player.draw_score(init, offset, ctx)
-        init += init + offset
-    });
+
+    if (!STATE) {
+        draw_asteroids(asteroids, ctx);
+        main_menu(ctx);
+        arrow(ctx);
+    }
+    else if (STATE == PVP) {
+        bullets.forEach(element => element.draw(ctx));
+        players.forEach(element => element.draw(ctx));
+
+        players.forEach(player => {
+            player.draw_score(init_pos, offset, ctx)
+            init_pos += init_pos + offset
+        });
+    }
+    else if (STATE) {
+        draw_asteroids(asteroids, ctx);
+        bullets.forEach(element => element.draw(ctx));
+        players.forEach(element => element.draw(ctx));
+
+        if (particules.length)
+            draw_particules(particules, ctx);
+
+
+        players.forEach(player => {
+            player.draw_score(init_pos, offset, ctx)
+            init_pos += init_pos + offset
+        });
+    }
 }
 
 function update_pos() {
@@ -104,9 +161,8 @@ function process_collisions() {
                 particules = particules.concat(spawn_particules(25, asteroid.Barycenter, bullet.Barycenter, asteroid.Color, asteroid.lvl));
                 asteroids = asteroids.concat(spawn_on_colision(asteroid, bullet));
                 players.forEach(player => {
-                    console.log(bullet.id)
                     if (player.id == bullet.id)
-                        player.score += 100 * (LVL_MAX - asteroid.lvl);
+                        player.score += 100 * (get_lvl_max() - asteroid.lvl);
                 });
                 return
             }
@@ -114,10 +170,24 @@ function process_collisions() {
     }
 }
 
+function update() {
+    let tot_score = 0;
+    players.forEach(player => {
+        tot_score += player.score;
+    });
+
+    let difficulty = Math.floor(tot_score / DIFFICULTY_RATIO)
+
+    if (asteroids.length < ASTEROID_COUNT + difficulty) {
+        asteroids.push(spawn_asteroid(get_lvl_max() - LVL))
+    }
+}
+
 function game() {
     update_pos();
     process_collisions();
     draw_elements();
+    update();
 }
 
 addEventListener("keypress", keydown_callback);

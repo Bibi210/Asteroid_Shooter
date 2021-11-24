@@ -1,5 +1,5 @@
-import { better_direction, LVL_MAX } from "./asteroid.js";
-import { Point, Rand_Between } from "./lib.js"
+import { better_direction, get_lvl_max } from "./asteroid.js";
+import { Point, Rand_Between } from "./lib.js";
 
 let MAX_LIFETIME = 150;
 let MIN_LIFETIME = 100;
@@ -25,7 +25,7 @@ export class Particule extends Point {
 export function spawn_particules(particule_count, pos, dir, color, size) {
     let particules = [];
     for (let i = 0; i < particule_count; i++) {
-        particules.push(new Particule(pos, dir, color, 1 / (LVL_MAX - size) * 2 + 2));
+        particules.push(new Particule(pos, dir, color, 1 / (get_lvl_max() - size) * 2 + 2));
     }
     return particules;
 }
