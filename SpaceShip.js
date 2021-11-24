@@ -29,19 +29,19 @@ export class Object extends Polygon {
     }
 
     wrap_object() {
-        let dx = WIDTH + this.Size;
-        let dy = HEIGHT + this.Size;
+        let dx = WIDTH + this.Size * 2;
+        let dy = HEIGHT + this.Size * 2;
 
-        if (this.Barycenter.x < -this.Size / 2)
+        if (this.Barycenter.x < -this.Size)
             this.move(dx, 0);
 
-        if (this.Barycenter.x > WIDTH + this.Size / 2)
+        if (this.Barycenter.x > WIDTH + this.Size)
             this.move(-dx, 0);
 
-        if (this.Barycenter.y < -this.Size / 2)
+        if (this.Barycenter.y < -this.Size)
             this.move(0, dy);
 
-        if (this.Barycenter.y > HEIGHT + this.Size / 2)
+        if (this.Barycenter.y > HEIGHT + this.Size)
             this.move(0, -dy);
     }
 }
@@ -57,6 +57,10 @@ export class Bullet extends Object {
     update() {
         this.bullets_duration--;
         this.updatePos();
+    }
+
+    get_dir() {
+        return new Point(this.speed.x + this.Barycenter.x, this.speed.y + this.Barycenter.y);
     }
 }
 

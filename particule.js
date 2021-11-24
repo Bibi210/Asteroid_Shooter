@@ -1,5 +1,6 @@
 import { better_direction, get_lvl_max } from "./asteroid.js";
 import { Point, Rand_Between } from "./lib.js";
+import { CENTER } from "./main.js";
 
 let MAX_LIFETIME = 150;
 let MIN_LIFETIME = 100;
@@ -9,10 +10,10 @@ export let MIN_PARTICULES = 5;
 
 
 export class Particule extends Point {
-    constructor(pos, dir, color, size) {
+    constructor(pos, from, to, color, size) {
         super(pos.x, pos.y, size)
         this.lifetime = Math.floor(Rand_Between(MIN_LIFETIME, MAX_LIFETIME + 1))
-        this.direction = better_direction(Math.random(), dir);
+        this.direction = better_direction(Math.random(), from, to);
         this.color = color;
     }
 
@@ -22,10 +23,10 @@ export class Particule extends Point {
     }
 }
 
-export function spawn_particules(particule_count, pos, dir, color, size) {
+export function spawn_particules(particule_count, pos, from, to, color, size) {
     let particules = [];
     for (let i = 0; i < particule_count; i++) {
-        particules.push(new Particule(pos, dir, color, 1 / (get_lvl_max() - size) * 2 + 2));
+        particules.push(new Particule(pos, from, to, color, 1 / (get_lvl_max() - size) * 2 + 2));
     }
     return particules;
 }

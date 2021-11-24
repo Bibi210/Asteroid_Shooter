@@ -8,6 +8,7 @@ export function random_rgb() {
 export function to_radians(angle) {
     return angle * (Math.PI / 180);
 }
+
 export class Point {
     constructor(x, y, size = 0, color = random_rgb()) {
         this.x = x;

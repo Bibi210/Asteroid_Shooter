@@ -1,4 +1,4 @@
-import { draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
+import { Asteroid, draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
 import { arrow, main_menu, set_offset } from "./game.js";
 import { Point, Rectangle, random_rgb, to_radians } from "./lib.js";
 import { draw_particules, move_particules, spawn_particules } from "./particule.js";
@@ -41,25 +41,34 @@ export let buffs = [];
 let players = []
 
 function init() {
-    ASTEROID_COUNT = 10;
+    ASTEROID_COUNT = 1;
     LVL = 2;
 
     asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
 }
 
 function keydown_callback(event) {
-    if (event.key == '0' && STATE != 0) {
+    handle_state(event.key);
+    if (!key_pressed.some(i => i == event.key))
+        key_pressed.push(event.key);
+}
+function keyup_callback(event) {
+    key_pressed = key_pressed.filter(i => i != event.key);
+}
+
+function handle_state(key) {
+    if (key == '0' && STATE != 0) {
         STATE = 0;
         ASTEROID_COUNT = 10;
         LVL = 2;
 
-        players = [];
         asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
     }
     if (!STATE) {
         players = [];
+        particules = [];
         LVL = 1;
-        if (event.key == '1') {
+        if (key == '1') {
             STATE = 1;
 
             ASTEROID_COUNT = 5;
@@ -68,7 +77,7 @@ function keydown_callback(event) {
             players.push(playerA);
             asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
         }
-        else if (event.key == '2') {
+        else if (key == '2') {
             STATE = 2;
 
             ASTEROID_COUNT = 7;
@@ -79,7 +88,7 @@ function keydown_callback(event) {
             players.push(playerB);
             asteroids = fill_asteroids(ASTEROID_COUNT, LVL)
         }
-        else if (event.key == '3') {
+        else if (key == '3') {
             STATE = 3;
 
             ASTEROID_COUNT = 0;
@@ -90,29 +99,24 @@ function keydown_callback(event) {
             players.push(playerB);
             asteroids = [];
         }
-        else if (event.key == 'e') {
+        else if (key == 'e') {
             set_lvl_max(2);
-            set_offset(0);
+            set_offset(0.2);
         }
-        else if (event.key == 'm') {
+        else if (key == 'm') {
             set_lvl_max(4);
-            set_offset(130);
+            set_offset(0.35);
         }
-        else if (event.key == 'h') {
+        else if (key == 'h') {
             set_lvl_max(6);
-            set_offset(260);
+            set_offset(0.5);
         }
     }
-    else if (!key_pressed.some(i => i == event.key)) {
-        key_pressed.push(event.key);
-    }
-}
-function keyup_callback(event) {
-    key_pressed = key_pressed.filter(i => i != event.key);
 }
 
 function draw_elements() {
-    ctx.clearRect(0, 0, cnv.width, cnv.height);
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    ctx.lineWidth = 3;
 
     let init_pos = 24;
     let offset = 65;
@@ -161,7 +165,7 @@ function process_collisions() {
             if (bullets[i].Collide(asteroid)) {
                 bullets.splice(i, 1);
                 asteroids.splice(j, 1);
-                particules = particules.concat(spawn_particules(25, asteroid.Barycenter, bullet.Barycenter, asteroid.Color, asteroid.lvl));
+                particules = particules.concat(spawn_particules(25, bullet.Barycenter, bullet.Barycenter, bullet.get_dir(), asteroid.Color, asteroid.lvl));
                 asteroids = asteroids.concat(spawn_on_colision(asteroid, bullet));
                 players.forEach(player => {
                     if (player.id == bullet.id)
@@ -174,8 +178,11 @@ function process_collisions() {
         }
         players.forEach(player => {
             if (player.Collide(asteroid)) {
-                particules = particules.concat(spawn_particules(25, asteroid.Barycenter, player.Barycenter, asteroid.Color, asteroid.lvl));
                 asteroids.splice(j, 1);
+                let new_dir = new Point(player.speed.x + player.Barycenter.x, player.speed.y + player.Barycenter.y);
+                //TODO Find better pos
+                let new_pos = new Point(player.Barycenter.x - player.speed.x, player.Barycenter.y - player.speed.y);
+                particules = particules.concat(spawn_particules(25, new_pos, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
                 j--;
                 if (player.shield) {
                     player.shield = false;
@@ -233,3 +240,6 @@ addEventListener("keyup", keyup_callback);
 init();
 setInterval(game, 1000 / FPS);
 
+//TODO Thruster
+//TODO clean code
+//TODO Music
