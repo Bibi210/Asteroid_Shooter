@@ -6,8 +6,12 @@ import { Object } from "./SpaceShip.js"
 let CONCAVE = 1;
 
 let LVL_MAX = 6;
-let MAX_SPEED = 0.5;
+let MAX_SPEED = 1;
 let MIN_SPEED = 0.1;
+
+let MAX_SIZE = 300;
+let MIN_SIZE = 80;
+
 let DISPERSION = 160;
 
 let COLOR = [
@@ -26,7 +30,7 @@ export class Asteroid extends Object {
             super(poly.Point_List, 0)
         this.Size = poly.Size;
         this.Color = COLOR[lvl];
-        this.speed = better_direction(speed_from_lvl(lvl), dir);
+        this.speed = better_direction(proportion_from_lvl(lvl, MAX_SPEED, MIN_SPEED, 1), dir, pos);
         this.lvl = lvl
     }
     move_asteroid() {
@@ -48,22 +52,19 @@ export function move_asteroids(asteroids) {
 }
 
 export function spawn_asteroid(lvl, dir = undefined, pos = undefined) {
-    let size = 1 / (LVL_MAX - lvl) * 200
+    let size = proportion_from_lvl(lvl, MAX_SIZE, MIN_SIZE, 0);
 
     if (!pos)
         pos = rand_position_on_side(size);
     if (!dir)
-        dir = pos;
+        dir = CENTER;
 
-    // instantiate an asteroid
     let a = new Asteroid(pos, dir, 10, size, lvl, CONCAVE);
 
-    // return the asteroid
     return a;
 }
 
 export function fill_asteroids(asteroid_count, lvl) {
-    console.log(LVL_MAX);
     let asteroids = [];
 
     for (let i = 0; i < asteroid_count; i++) {
@@ -79,11 +80,14 @@ export function spawn_on_colision(destroyed_asteroid, bullet, spawn_count = 2) {
     // instantiate new asteroids
     if (destroyed_asteroid.lvl != 0) {
         while (spawn_count) {
-            new_asteroids.push(spawn_asteroid(destroyed_asteroid.lvl - 1, bullet.Barycenter, destroyed_asteroid.Barycenter));
+            // use teleport to replace new asteroid to good position
+            let a = new Asteroid(destroyed_asteroid.Barycenter, bullet.get_dir(), 10, proportion_from_lvl(destroyed_asteroid.lvl - 1, MAX_SIZE, MIN_SIZE, 0), destroyed_asteroid.lvl - 1, CONCAVE);
+            new_asteroids.push(a);
             spawn_count -= 1;
         }
     }
 
+    console.log(new_asteroids);
     return new_asteroids;
 }
 
@@ -103,14 +107,15 @@ function push_verticaly(y, size) {
 //     return new Point(speed * Math.sin(a), speed * Math.cos(a));
 // }
 
-export function better_direction(speed, pos) {
-    let a = get_angle(CENTER, pos);
-    let d = rand_angle_from_dispersion(a - to_radian(DISPERSION / 2), DISPERSION);
+export function better_direction(speed, from, to) {
+    let a = get_angle(from, to);
+    let d = rand_angle_from_dispersion((a - to_radian(DISPERSION / 2) % to_radian(360)), DISPERSION);
     return new Point(speed * Math.sin(d), speed * Math.cos(d));
 }
 
 function get_angle(A, O) {
-    return (to_radian(360) - Math.atan2(A.y - O.y, A.x - O.x)) % to_radian(360);
+    let angle = (to_radian(360) - Math.atan2(A.y - O.y, A.x - O.x)) % to_radian(360);
+    return angle
 }
 
 function rand_angle_from_dispersion(min, dispersion) {
@@ -135,9 +140,12 @@ function rand_position_on_side(size) {
     return new Point(x, y);
 }
 
-function speed_from_lvl(lvl) {
-    let k = (MAX_SPEED - MIN_SPEED) / LVL_MAX;
-    return MIN_SPEED + (k * (LVL_MAX - lvl));
+function proportion_from_lvl(lvl, max, min, inverse) {
+    let k = (max - min) / LVL_MAX;
+    if (inverse) {
+        return min + (k * (LVL_MAX - lvl));
+    }
+    return min + k * lvl;
 }
 
 function to_radian(angle) {

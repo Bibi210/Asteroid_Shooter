@@ -8,6 +8,7 @@ export function random_rgb() {
 export function to_radians(angle) {
     return angle * (Math.PI / 180);
 }
+
 export class Point {
     constructor(x, y, size = 0, color = "rgb(0,0,0)") {
         this.x = x;
@@ -110,7 +111,6 @@ export class Polygon {
         ctx.strokeStyle = this.Color;
         ctx.stroke();
         ctx.closePath();
-        this.updatePos();
     }
     Point_inside(A) {
         let inside = false;
