@@ -48,7 +48,15 @@ export let buffs = [];
 let players = []
 
 function init() {
-    ASTEROID_COUNT = 1;
+    ASTEROID_COUNT = 10;
+    LVL = 2;
+
+    asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+}
+
+function play_menu() {
+    STATE = 0;
+    ASTEROID_COUNT = 10;
     LVL = 2;
     asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
 }
@@ -68,12 +76,9 @@ function keyup_callback(event) {
 }
 
 function handle_state(key) {
+    // console.log("Hey");
     if (key == '0' && STATE != 0) {
-        STATE = 0;
-        ASTEROID_COUNT = 10;
-        LVL = 2;
-
-        asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+        play_menu();
     }
     if (!STATE) {
         players = [];
@@ -82,7 +87,7 @@ function handle_state(key) {
         if (key == '1') {
             STATE = 1;
 
-            ASTEROID_COUNT = 5;
+            ASTEROID_COUNT = 3;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             players.push(playerA);
@@ -91,7 +96,7 @@ function handle_state(key) {
         else if (key == '2') {
             STATE = 2;
 
-            ASTEROID_COUNT = 7;
+            ASTEROID_COUNT = 4;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
@@ -104,15 +109,16 @@ function handle_state(key) {
         else if (key == '3') {
             STATE = 3;
 
-            ASTEROID_COUNT = 0;
+            ASTEROID_COUNT = 5;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
+            playerA.teleport(0.95 * WIDTH, 0.10 * HEIGHT);
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
             playerA.move(WIDTH / 4, 0);
             playerB.move(-WIDTH / 4, 0);
             players.push(playerA);
             players.push(playerB);
-            asteroids = [];
+            asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
         }
         else if (key == 'e') {
             set_lvl_max(2);
@@ -135,13 +141,12 @@ function draw_elements() {
     let init_pos = 24;
     let offset = 65;
 
+    draw_asteroids(asteroids, ctx);
     if (!STATE) {
-        draw_asteroids(asteroids, ctx);
         main_menu(ctx);
         arrow(ctx);
     }
-    else if (STATE) {
-        draw_asteroids(asteroids, ctx);
+    else {
         bullets.forEach(element => element.draw(ctx));
         players.forEach(element => element.draw(ctx));
 
@@ -171,7 +176,7 @@ function process_collisions() {
                 if (asteroids.length < asteroid_cap)
                     asteroids = asteroids.concat(spawn_on_colision(asteroid, bullet));
                 players.forEach(player => {
-                    if (player == bullet.owner) {
+                    if (player == bullet.owner && STATE != 3) {
                         player.score += 100 * (get_lvl_max() - asteroid.lvl);
                         new Buff(asteroid.buff, player).add_buff();
                     }
@@ -185,9 +190,7 @@ function process_collisions() {
                 asteroids.splice(j, 1);
                 j--;
                 let new_dir = new Point(player.speed.x + player.Barycenter.x, player.speed.y + player.Barycenter.y);
-                //TODO Find better pos
-                let new_pos = new Point(player.Barycenter.x - player.speed.x, player.Barycenter.y - player.speed.y);
-                particules = particules.concat(spawn_particules(25, new_pos, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
+                particules = particules.concat(spawn_particules(25, asteroid.Barycenter, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
                 player.life_lost();
                 new Buff(asteroid.buff, player).add_buff();
             }
@@ -248,9 +251,8 @@ function update() {
             players.splice(index, 1);
         }
     }
-    if (!players.length || (STATE == 3 && players.length == 1)) {
-        STATE = 0;
-        players = [];
+    if ((!players.length && STATE != 0) || (STATE == 3 && players.length == 1)) {
+        play_menu();
     }
 }
 
