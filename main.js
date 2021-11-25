@@ -1,4 +1,4 @@
-import { Asteroid, draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
+import { draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
 import { arrow, main_menu, set_offset } from "./game.js";
 import { Point, Rectangle, random_rgb, to_radians } from "./lib.js";
 import { draw_particules, move_particules, spawn_particules } from "./particule.js";
@@ -11,7 +11,6 @@ let ctx = cnv.getContext("2d");
 
 let FPS = 300;
 let STATE = 0;
-let PVP = 3;
 let DIFFICULTY_RATIO = 2000;
 
 export let WIDTH = cnv.width;
@@ -41,7 +40,15 @@ export let buffs = [];
 let players = []
 
 function init() {
-    ASTEROID_COUNT = 1;
+    ASTEROID_COUNT = 10;
+    LVL = 2;
+
+    asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+}
+
+function play_menu() {
+    STATE = 0;
+    ASTEROID_COUNT = 10;
     LVL = 2;
 
     asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
@@ -57,12 +64,9 @@ function keyup_callback(event) {
 }
 
 function handle_state(key) {
+    // console.log("Hey");
     if (key == '0' && STATE != 0) {
-        STATE = 0;
-        ASTEROID_COUNT = 10;
-        LVL = 2;
-
-        asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+        play_menu();
     }
     if (!STATE) {
         players = [];
@@ -71,7 +75,7 @@ function handle_state(key) {
         if (key == '1') {
             STATE = 1;
 
-            ASTEROID_COUNT = 5;
+            ASTEROID_COUNT = 3;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, random_rgb());
             players.push(playerA);
@@ -80,7 +84,7 @@ function handle_state(key) {
         else if (key == '2') {
             STATE = 2;
 
-            ASTEROID_COUNT = 7;
+            ASTEROID_COUNT = 4;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
@@ -91,13 +95,15 @@ function handle_state(key) {
         else if (key == '3') {
             STATE = 3;
 
-            ASTEROID_COUNT = 0;
+            ASTEROID_COUNT = 5;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
+            playerA.teleport(0.95 * WIDTH, 0.10 * HEIGHT);
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
+            playerB.teleport(0.05 * WIDTH, 0.90 * HEIGHT);
             players.push(playerA);
             players.push(playerB);
-            asteroids = [];
+            asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
         }
         else if (key == 'e') {
             set_lvl_max(2);
@@ -121,28 +127,17 @@ function draw_elements() {
     let init_pos = 24;
     let offset = 65;
 
+    draw_asteroids(asteroids, ctx);
     if (!STATE) {
-        draw_asteroids(asteroids, ctx);
         main_menu(ctx);
         arrow(ctx);
     }
-    else if (STATE == PVP) {
-        bullets.forEach(element => element.draw(ctx));
-        players.forEach(element => element.draw(ctx));
-
-        players.forEach(player => {
-            player.draw_score(init_pos, offset, ctx)
-            init_pos += init_pos + offset
-        });
-    }
-    else if (STATE) {
-        draw_asteroids(asteroids, ctx);
+    else {
         bullets.forEach(element => element.draw(ctx));
         players.forEach(element => element.draw(ctx));
 
         if (particules.length)
             draw_particules(particules, ctx);
-
 
         players.forEach(player => {
             player.draw_score(init_pos, offset, ctx)
@@ -168,7 +163,7 @@ function process_collisions() {
                 particules = particules.concat(spawn_particules(25, bullet.Barycenter, bullet.Barycenter, bullet.get_dir(), asteroid.Color, asteroid.lvl));
                 asteroids = asteroids.concat(spawn_on_colision(asteroid, bullet));
                 players.forEach(player => {
-                    if (player.id == bullet.id)
+                    if (player.id == bullet.id && STATE != 3)
                         player.score += 100 * (get_lvl_max() - asteroid.lvl);
                 });
                 i--;
@@ -181,8 +176,7 @@ function process_collisions() {
                 asteroids.splice(j, 1);
                 let new_dir = new Point(player.speed.x + player.Barycenter.x, player.speed.y + player.Barycenter.y);
                 //TODO Find better pos
-                let new_pos = new Point(player.Barycenter.x - player.speed.x, player.Barycenter.y - player.speed.y);
-                particules = particules.concat(spawn_particules(25, new_pos, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
+                particules = particules.concat(spawn_particules(25, asteroid.Barycenter, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
                 j--;
                 if (player.shield) {
                     player.shield = false;
@@ -213,7 +207,7 @@ function update() {
 
     for (let index = 0; index < buffs.length; index++) {
         buffs[index].update_buff();
-        console.log(buffs[index].buff_duration);
+        // console.log(buffs[index].buff_duration);
         if (!buffs[index].buff_duration)
             buffs.splice(index, 1);
     }
@@ -222,8 +216,8 @@ function update() {
             players.splice(index, 1);
         }
     }
-    if (!players.length) {
-        STATE = 0;
+    if (!players.length && STATE != 0) {
+        play_menu();
     }
 }
 

@@ -1,3 +1,4 @@
+import { fill_asteroids } from "./asteroid.js";
 import { HEIGHT, WIDTH } from "./main.js";
 
 let offset = 0.5;
@@ -18,7 +19,7 @@ export function main_menu(ctx) {
 
 export function arrow(ctx) {
     ctx.beginPath();
-    ctx.moveTo(0.82 * WIDTH,                0.14 * HEIGHT + offset * HEIGHT);
+    ctx.moveTo(0.82 * WIDTH, 0.14 * HEIGHT + offset * HEIGHT);
     ctx.lineTo(0.82 * WIDTH + 0.02 * WIDTH, 0.14 * HEIGHT + 0.015 * HEIGHT + offset * HEIGHT);
     ctx.lineTo(0.82 * WIDTH + 0.02 * WIDTH, 0.14 * HEIGHT - 0.015 * HEIGHT + offset * HEIGHT);
     ctx.fillStyle = "rgb(45,200,45)"

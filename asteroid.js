@@ -80,14 +80,13 @@ export function spawn_on_colision(destroyed_asteroid, bullet, spawn_count = 2) {
     // instantiate new asteroids
     if (destroyed_asteroid.lvl != 0) {
         while (spawn_count) {
-            //TODO use teleport to replace new asteroid to good position
             let a = new Asteroid(destroyed_asteroid.Barycenter, bullet.get_dir(), 10, proportion_from_lvl(destroyed_asteroid.lvl - 1, MAX_SIZE, MIN_SIZE, 0), destroyed_asteroid.lvl - 1, CONCAVE);
+            a.teleport(destroyed_asteroid.Barycenter.x, destroyed_asteroid.Barycenter.y);
             new_asteroids.push(a);
             spawn_count -= 1;
         }
     }
 
-    console.log(new_asteroids);
     return new_asteroids;
 }
 
