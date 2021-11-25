@@ -115,7 +115,9 @@ function push_verticaly(y, size) {
 export function better_direction(speed, from, to) {
     let a = get_angle(from, to);
     let d = rand_angle_from_dispersion((a - to_radian(DISPERSION / 2) % to_radian(360)), DISPERSION);
-    return new Point(speed * Math.sin(d), speed * Math.cos(d));
+    console.log(speed);
+    let p = new Point(speed * Math.sin(d), speed * Math.cos(d));
+    return p;
 }
 
 function get_angle(A, O) {

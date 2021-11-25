@@ -45,7 +45,8 @@ let sound_on = false;
 export let key_pressed = [];
 export let bullets = [];
 export let buffs = [];
-let players = []
+let players = [];
+let fragments = [];
 
 function init() {
     ASTEROID_COUNT = 10;
@@ -76,13 +77,13 @@ function keyup_callback(event) {
 }
 
 function handle_state(key) {
-    // console.log("Hey");
     if (key == '0' && STATE != 0) {
         play_menu();
     }
     if (!STATE) {
         players = [];
         particules = [];
+        fragments = [];
         LVL = 1;
         if (key == '1') {
             STATE = 1;
@@ -96,7 +97,7 @@ function handle_state(key) {
         else if (key == '2') {
             STATE = 2;
 
-            ASTEROID_COUNT = 4;
+            ASTEROID_COUNT = 10;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
@@ -149,6 +150,7 @@ function draw_elements() {
     else {
         bullets.forEach(element => element.draw(ctx));
         players.forEach(element => element.draw(ctx));
+        fragments.forEach(element => element[0].draw(ctx));
 
         if (particules.length)
             draw_particules(particules, ctx);
@@ -164,6 +166,7 @@ function update_pos() {
     move_asteroids(asteroids);
     move_particules(particules);
     players.forEach(element => element.update_player());
+    fragments.forEach(element => element[0].updatePos());
 }
 
 function process_collisions() {
@@ -253,6 +256,15 @@ function update() {
     }
     if ((!players.length && STATE != 0) || (STATE == 3 && players.length == 1)) {
         play_menu();
+    }
+
+    for (let i = 0; i < fragments.length; i++) {
+        if (!fragments[i][1]) {
+            fragments.splice(i, 1);
+        }
+        else {
+            fragments[i][1] -= 1;
+        }
     }
 }
 
