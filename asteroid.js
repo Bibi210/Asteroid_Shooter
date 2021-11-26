@@ -164,7 +164,7 @@ export function set_lvl_max(v) {
     LVL_MAX = v;
 }
 
-const buff_type = {
+export const buff_type = {
     Gatling: 0,
     Big_Bullet: 1,
     Shield: 2,

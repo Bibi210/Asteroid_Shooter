@@ -157,7 +157,7 @@ function draw_elements() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     ctx.lineWidth = 3;
     let init_pos = 24;
-    let offset = 65;
+    let offset = 120;
 
     for (let i = 0; i < background.length; i++) {
         let is_shinning = probability(50);
@@ -182,6 +182,7 @@ function draw_elements() {
             draw_particules(particules, ctx);
 
         players.forEach(player => {
+            player.draw_buff(buffs, init_pos, offset, ctx)
             player.draw_score(init_pos, offset, ctx)
             init_pos += init_pos + offset
         });

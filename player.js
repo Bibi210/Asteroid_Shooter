@@ -1,6 +1,6 @@
-import { better_direction } from "./asteroid.js";
+import { better_direction, buff_type } from "./asteroid.js";
 import { Point } from "./lib.js";
-import { CENTER } from "./main.js";
+import { CENTER, HEIGHT, WIDTH } from "./main.js";
 import { Ship, Object } from "./SpaceShip.js"
 
 export class Player extends Ship {
@@ -31,8 +31,30 @@ export class Player extends Ship {
         let x_init = 6
         let x_offset = 30
         for (let i = 0; i < this.life; i++) {
-            ctx.fillText('❤️', x_init, init + offset / 2);
+            ctx.fillText('❤️', x_init, init + offset/ 3);
             x_init += x_offset;
+        }
+    }
+
+    draw_buff(buffs, init, offset, ctx) {
+        ctx.font = '24px Courier New';
+        ctx.fillStyle = this.Color;
+        buffs.forEach(buff => {
+            if (buff.owner == this) {
+                if (buff.type == buff_type.Gatling) {
+                    ctx.fillText('Gatling: ' + (buff.buff_duration / 10).toString(), 0.20 * WIDTH, init + (0.04 * HEIGHT));
+                }
+
+                if (buff.type == buff_type.Big_Bullet) {
+                    ctx.fillText('Big bullet: true', 0.20 * WIDTH, init + (0.08 * HEIGHT));
+                }
+            }
+        });
+        if (this.shield) {
+            ctx.fillText('Shield: true', 0.20 * WIDTH, init);
+        }
+        else {
+            ctx.fillText('Shield: false', 0.20 * WIDTH, init);
         }
     }
 
