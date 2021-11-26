@@ -1,4 +1,3 @@
-import { fill_asteroids } from "./asteroid.js";
 import { HEIGHT, WIDTH } from "./main.js";
 
 let offset = 0.5;

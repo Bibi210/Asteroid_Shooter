@@ -1,5 +1,5 @@
 import { Polygon, Point, random_rgb, to_radians } from "./lib.js"
-import { CENTER, HEIGHT, key_pressed, WIDTH, bullet_points, bullets, buffs, shield_points, truster_points } from "./main.js"
+import { HEIGHT, key_pressed, WIDTH, bullet_points, bullets, buffs, shield_points, truster_points } from "./main.js"
 
 let BULLET_LIFETIME = 300;
 export class Object extends Polygon {

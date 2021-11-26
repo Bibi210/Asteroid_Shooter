@@ -1,6 +1,5 @@
 import { better_direction, get_lvl_max } from "./asteroid.js";
 import { Point, Rand_Between } from "./lib.js";
-import { CENTER } from "./main.js";
 
 let MAX_LIFETIME = 150;
 let MIN_LIFETIME = 100;

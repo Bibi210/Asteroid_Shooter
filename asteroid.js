@@ -1,12 +1,12 @@
 import { probability, gen_poly_concave, Point, Rand_Between, random_rgb } from "./lib.js";
-import { CENTER, HEIGHT, WIDTH, buffs, asteroids } from "./main.js";
+import { CENTER, HEIGHT, WIDTH, buffs } from "./main.js";
 import { Object } from "./SpaceShip.js"
 
 // let CONVEXE = 0;
 let CONCAVE = 1;
 
 let LVL_MAX = 6;
-let MAX_SPEED = 1;
+let MAX_SPEED = 0.5;
 let MIN_SPEED = 0.1;
 
 let MAX_SIZE = 300;
@@ -115,7 +115,6 @@ function push_verticaly(y, size) {
 export function better_direction(speed, from, to) {
     let a = get_angle(from, to);
     let d = rand_angle_from_dispersion((a - to_radian(DISPERSION / 2) % to_radian(360)), DISPERSION);
-    console.log(speed);
     let p = new Point(speed * Math.sin(d), speed * Math.cos(d));
     return p;
 }

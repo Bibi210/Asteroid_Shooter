@@ -1,6 +1,6 @@
 import { Buff, draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
 import { arrow, main_menu, set_offset } from "./game.js";
-import { Point, Rectangle, random_rgb, to_radians } from "./lib.js";
+import { Point, Rectangle, to_radians } from "./lib.js";
 import { draw_particules, move_particules, spawn_particules } from "./particule.js";
 import { Player } from "./player.js";
 
@@ -12,8 +12,6 @@ let ctx = cnv.getContext("2d");
 let FPS = 300;
 let STATE = 0;
 let DIFFICULTY_RATIO = 2000;
-
-export let asteroid_cap = 50;
 
 export let WIDTH = cnv.width;
 export let HEIGHT = cnv.height;
@@ -49,10 +47,7 @@ let players = [];
 let fragments = [];
 
 function init() {
-    ASTEROID_COUNT = 10;
-    LVL = 2;
-
-    asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+    play_menu();
 }
 
 function play_menu() {
@@ -60,13 +55,6 @@ function play_menu() {
     ASTEROID_COUNT = 10;
     LVL = 2;
 
-    asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
-}
-
-function play_menu() {
-    STATE = 0;
-    ASTEROID_COUNT = 10;
-    LVL = 2;
     asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
 }
 
@@ -105,7 +93,7 @@ function handle_state(key) {
         else if (key == '2') {
             STATE = 2;
 
-            ASTEROID_COUNT = 10;
+            ASTEROID_COUNT = 4;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
@@ -121,7 +109,6 @@ function handle_state(key) {
             ASTEROID_COUNT = 5;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
-            playerA.teleport(0.95 * WIDTH, 0.10 * HEIGHT);
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
             playerA.move(WIDTH / 4, 0);
             playerB.move(-WIDTH / 4, 0);
@@ -184,8 +171,7 @@ function process_collisions() {
             let bullet = bullets[i];
             if (bullet.Collide(asteroid)) {
                 particules = particules.concat(spawn_particules(25, bullet.Barycenter, bullet.Barycenter, bullet.get_dir(), asteroid.Color, asteroid.lvl));
-                if (asteroids.length < asteroid_cap)
-                    asteroids = asteroids.concat(spawn_on_colision(asteroid, bullet));
+                asteroids = asteroids.concat(spawn_on_colision(asteroid, bullet));
                 players.forEach(player => {
                     if (player == bullet.owner && STATE != 3) {
                         player.score += 100 * (get_lvl_max() - asteroid.lvl);
@@ -202,7 +188,11 @@ function process_collisions() {
                 j--;
                 let new_dir = new Point(player.speed.x + player.Barycenter.x, player.speed.y + player.Barycenter.y);
                 particules = particules.concat(spawn_particules(25, asteroid.Barycenter, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
-                player.life_lost();
+                if (player.life_lost()) {
+                    fragments = fragments.concat(player.get_fragments());
+                    player.speed = new Point(0, 0);
+                    player.teleport(CENTER.x, CENTER.y);
+                }
                 new Buff(asteroid.buff, player).add_buff();
             }
         });
@@ -214,18 +204,23 @@ function process_collisions() {
                 if (player.Collide(bullet) && player != bullet.owner) {
                     particules = particules.concat(spawn_particules(25, bullet.Barycenter, bullet.Barycenter, bullet.get_dir(), player.Color, player.Size));
                     bullets.splice(index, 1);
-                    if (player.life_lost())
+                    if (player.life_lost()) {
+                        fragments = fragments.concat(player.get_fragments());
+                        player.speed = new Point(0, 0);
+                        player.teleport(CENTER.x, CENTER.y);
                         players.forEach(player => {
-                            if (player == bullet.owner)
+                            if (player == bullet.owner) {
                                 player.score += 1000;
+                            }
                         });
+                    }
                 }
             }
             players.forEach(other => {
                 if (other != player) {
                     if (player.Collide(other)) {
                         let new_dir = new Point(player.speed.x + player.Barycenter.x, player.speed.y + player.Barycenter.y);
-                        particules = particules.concat(spawn_particules(25, asteroid.Barycenter, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
+                        particules = particules.concat(spawn_particules(25, other.Barycenter, new_dir, player.Barycenter, player.Color, player.Size));
                         if (player.life_lost()) {
                             fragments = fragments.concat(player.get_fragments());
                             player.speed = new Point(0, 0);
@@ -244,7 +239,7 @@ function update() {
         tot_score += player.score;
     });
     let difficulty = Math.floor(tot_score / DIFFICULTY_RATIO)
-    if (asteroids.length < ASTEROID_COUNT + difficulty && asteroids.length < asteroid_cap) {
+    if (compute_asteroid_tot() < ASTEROID_COUNT + difficulty) {
         asteroids.push(spawn_asteroid(get_lvl_max() - LVL))
     }
     for (let index = 0; index < bullets.length; index++) {
@@ -276,6 +271,15 @@ function update() {
             fragments[i][1] -= 1;
         }
     }
+}
+
+function compute_asteroid_tot() {
+    let tot = 0
+    asteroids.forEach(asteroid => {
+        tot += asteroid.lvl;
+    });
+
+    return tot;
 }
 
 function game() {
