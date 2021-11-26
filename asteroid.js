@@ -1,5 +1,5 @@
-import { gen_poly_concave, Point, Rand_Between } from "./lib.js";
-import { CENTER, HEIGHT, WIDTH } from "./main.js";
+import { probability, gen_poly_concave, Point, Rand_Between, random_rgb } from "./lib.js";
+import { CENTER, HEIGHT, WIDTH, buffs, asteroids } from "./main.js";
 import { Object } from "./SpaceShip.js"
 
 // let CONVEXE = 0;
@@ -24,6 +24,7 @@ let COLOR = [
 ];
 
 export class Asteroid extends Object {
+    buff = -1;
     constructor(pos, dir, side_count, max_size, lvl, mode) {
         let poly = gen_poly_concave(pos.x, pos.y, side_count, max_size);
         if (mode == CONCAVE)
@@ -32,10 +33,17 @@ export class Asteroid extends Object {
         this.Color = COLOR[lvl];
         this.speed = better_direction(proportion_from_lvl(lvl, MAX_SPEED, MIN_SPEED, 1), dir, pos);
         this.lvl = lvl
+        if (probability(10))
+            this.buff = Math.floor(Rand_Between(0, 4));
     }
     move_asteroid() {
         // Move asteroid
         this.updatePos();
+    }
+    draw(ctx) {
+        if (this.buff != -1)
+            this.Color = random_rgb();
+        super.draw(ctx);
     }
 }
 
@@ -66,7 +74,6 @@ export function spawn_asteroid(lvl, dir = undefined, pos = undefined) {
 
 export function fill_asteroids(asteroid_count, lvl) {
     let asteroids = [];
-
     for (let i = 0; i < asteroid_count; i++) {
         asteroids.push(spawn_asteroid(LVL_MAX - lvl))
     }
@@ -76,7 +83,6 @@ export function fill_asteroids(asteroid_count, lvl) {
 
 export function spawn_on_colision(destroyed_asteroid, bullet, spawn_count = 2) {
     let new_asteroids = [];
-
     // instantiate new asteroids
     if (destroyed_asteroid.lvl != 0) {
         while (spawn_count) {
@@ -87,7 +93,6 @@ export function spawn_on_colision(destroyed_asteroid, bullet, spawn_count = 2) {
         }
     }
 
-    console.log(new_asteroids);
     return new_asteroids;
 }
 
@@ -158,4 +163,75 @@ export function get_lvl_max() {
 
 export function set_lvl_max(v) {
     LVL_MAX = v;
+}
+
+const buff_type = {
+    Gatling: 0,
+    Big_Bullet: 1,
+    Shield: 2,
+}
+
+export class Buff {
+    buff_duration = 0;
+    constructor(type, player) {
+        this.type = type;
+        this.owner = player;
+        this.apply_buff(this.owner);
+    }
+    apply_buff() {
+        switch (this.type) {
+            case buff_type.Gatling:
+                this.buff_duration = 600;
+                this.owner.cooling = 15;
+                break;
+            case buff_type.Big_Bullet:
+                this.buff_duration = 3000;
+                this.owner.bullets_size = 20;
+                break;
+            case buff_type.Shield:
+                if (!this.owner.shield)
+                    this.owner.shield = true;
+                else {
+                    this.type = Math.ceil(Rand_Between(0, 3));
+                    this.add_buff();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    remove_buff() {
+        switch (this.type) {
+            case buff_type.Gatling:
+                this.owner.cooling = 50;
+                break;
+            case buff_type.Big_Bullet:
+                this.owner.bullets_size = 5;
+                break
+            default:
+                break;
+        }
+    }
+    update_buff() {
+        this.buff_duration--;
+        if (this.buff_duration <= 0)
+            this.remove_buff();
+    }
+    equal(other) {
+        if (other.type == this.type && other.owner == this.owner)
+            return true;
+        return false;
+    }
+    add_buff() {
+        let copy = false
+        buffs.forEach(i => {
+            if (this.equal(i)) {
+                if (i.buff_duration < 6000)
+                    i.buff_duration += this.buff_duration;
+                copy = true;
+            }
+        })
+        if (!copy)
+            buffs.push(this);
+    }
 }

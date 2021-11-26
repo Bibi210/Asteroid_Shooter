@@ -11,7 +11,14 @@ export class Player extends Ship {
     }
 
     update_player() {
-        this.update_ship(this.id)
+        this.update_ship();
+    }
+
+    life_lost() {
+        if (this.shield)
+            return this.shield = false;
+        else
+            return this.life--;
     }
 
     draw_score(init, offset, ctx) {
@@ -22,7 +29,7 @@ export class Player extends Ship {
         let x_init = 6
         let x_offset = 30
         for (let i = 0; i < this.life; i++) {
-            ctx.fillText('❤️', x_init, init + offset/2);
+            ctx.fillText('❤️', x_init, init + offset / 2);
             x_init += x_offset;
         }
     }

@@ -9,6 +9,12 @@ export function to_radians(angle) {
     return angle * (Math.PI / 180);
 }
 
+export function probability(pourcent) {
+    if (Math.floor(Rand_Between(0, 101)) <= pourcent)
+        return true;
+    return false;
+}
+
 export class Point {
     constructor(x, y, size = 0, color = random_rgb()) {
         this.x = x;

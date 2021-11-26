@@ -33,14 +33,12 @@ export function spawn_particules(particule_count, pos, from, to, color, size) {
 
 export function draw_particules(particules, ctx) {
     let to_delete = []
-
     for (let i = 0; i < particules.length; i++) {
         particules[i].draw(ctx);
         particules[i].lifetime -= 1;
         if (particules[i].lifetime < 0)
             to_delete.push(i);
     }
-
     to_delete.forEach(idx => {
         particules.splice(idx, 1);
     });

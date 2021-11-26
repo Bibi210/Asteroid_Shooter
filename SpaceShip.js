@@ -1,9 +1,7 @@
 import { Polygon, Point, random_rgb, to_radians } from "./lib.js"
-import { CENTER, HEIGHT, key_pressed, WIDTH, bullet_points, bullets, buffs, shield_points } from "./main.js"
+import { CENTER, HEIGHT, key_pressed, WIDTH, bullet_points, bullets, buffs, shield_points, truster_points } from "./main.js"
 
 let BULLET_LIFETIME = 300;
-let Gatling = 0;
-let Big_Bullet = 1;
 export class Object extends Polygon {
     current_direction = 0;
     rot_speed = 0;
@@ -44,6 +42,13 @@ export class Object extends Polygon {
         if (this.Barycenter.y > HEIGHT + this.Size)
             this.move(0, -dy);
     }
+
+    forward_vector(k) {
+        let rad_current_angle = to_radians(this.current_direction);
+        let accel_x = k * Math.cos(rad_current_angle);
+        let accel_y = k * -Math.sin(rad_current_angle);
+        return new Point(accel_x, accel_y);
+    }
 }
 
 export class Bullet extends Object {
@@ -52,56 +57,14 @@ export class Bullet extends Object {
         let shape = JSON.parse(JSON.stringify(bullet_points[type]));
         super(shape, scale);
         this.speed = JSON.parse(JSON.stringify(speed));
-        this.id = player
+        this.owner = player;
     }
     update() {
         this.bullets_duration--;
         this.updatePos();
     }
-
     get_dir() {
         return new Point(this.speed.x + this.Barycenter.x, this.speed.y + this.Barycenter.y);
-    }
-}
-
-
-
-export class Buff {
-    buff_duration = 0;
-    constructor(type, player) {
-        this.type = type;
-        this.owner = player;
-        this.apply_buff(this.owner);
-    }
-    apply_buff() {
-        switch (this.type) {
-            case Gatling:
-                this.buff_duration = 3000;
-                this.owner.cooling = 15;
-                break;
-            case Big_Bullet:
-                this.buff_duration = 3000;
-                this.owner.bullets_size = 20;
-            default:
-                break;
-        }
-    }
-    remove_buff() {
-        switch (this.type) {
-            case Gatling:
-                this.owner.cooling = 50;
-                break;
-            case Big_Bullet:
-                this.owner.bullets_size = 5;
-                break
-            default:
-                break;
-        }
-    }
-    update_buff() {
-        this.buff_duration--;
-        if (this.buff_duration <= 0)
-            this.remove_buff();
     }
 }
 
@@ -112,6 +75,7 @@ export class Ship extends Object {
         super(JSON.parse(JSON.stringify(ship_points)), scale, color);
         this.controls = keys;
 
+        this.current_direction = 90;
 
         this.accel = new Point(0, 0);
         this.speed = new Point(0, 0);
@@ -121,13 +85,17 @@ export class Ship extends Object {
         this.cooling = 50;
         this.bullets_size = 5;
         this.shield = true;
-        this.shield_poly = new Object(shield_points, scale * 5, "rgb(0,255,0)");
+        this.shield_poly = new Object(shield_points, scale * 7, this.Color);
+
+        this.truster_poly = new Object(truster_points, 10);
+
+        this.truster_on = false;
     }
     left() {
-        this.rot_speed = 0.5;
+        this.rot_speed = 0.8;
     }
     right() {
-        this.rot_speed = -0.5;
+        this.rot_speed = -0.8;
     }
     no_spin() {
         this.rot_speed = 0;
@@ -137,27 +105,23 @@ export class Ship extends Object {
         this.speed.y *= this.frottement_rate / 1.005;
     }
     forward() {
-        let rad_current_angle = to_radians(+90 + this.current_direction);
-        let accel_x = this.accel_rate * Math.cos(rad_current_angle);
-        let accel_y = this.accel_rate * -Math.sin(rad_current_angle);
-        if (Math.abs(this.speed.x) + Math.abs(this.speed.y) < 3)
-            this.speed = this.speed.add(new Point(accel_x, accel_y));
+        if (Math.abs(this.speed.x) + Math.abs(this.speed.y) < 3) {
+            this.speed = this.speed.add(this.forward_vector(this.accel_rate));
+        }
+        this.truster_on = true;
     }
-    shoot(player) {
-        let rad_current_angle = to_radians(+90 + this.current_direction);
-        let accel_x = 2 * Math.cos(rad_current_angle);
-        let accel_y = 2 * -Math.sin(rad_current_angle);
-        let new_bullet = new Bullet(0, new Point(accel_x + this.speed.x, accel_y + this.speed.y), this.bullets_size, player);
-        new_bullet.move(this.Start_Point.x, this.Start_Point.y);
+    shoot() {
+        let bullet_speed = this.forward_vector(2).add(this.speed);
+        let new_bullet = new Bullet(0, bullet_speed, this.bullets_size, this);
+        new_bullet.teleport(this.Start_Point.x, this.Start_Point.y);
         new_bullet.Color = this.Color;
-
         let index = bullets.length - 1;
         for (; index >= 0 && (bullets[index].Color != this.Color); index--) {
         }
         if (index == -1 || BULLET_LIFETIME - bullets[index].bullets_duration > this.cooling)
             bullets.push(new_bullet);
     }
-    input_manage(player) {
+    input_manage() {
         let go_left = key_pressed.some(i => i == this.controls[1]);
         let go_right = key_pressed.some(i => i == this.controls[3]);
         if (go_left && go_right || (!go_left && !go_right))
@@ -173,27 +137,32 @@ export class Ship extends Object {
         if (key_pressed.some(i => i == this.controls[2]))
             this.break();
         if (key_pressed.some(i => i == this.controls[4]))
-            this.shoot(player);
-        if (key_pressed.some(i => i == 'x')) {
-            let buff = new Buff(Big_Bullet, this);
-            buffs.push(buff);
-        }
+            this.shoot();
     }
-    update_ship(player) {
-        if (this.shield) {
-            this.shield_poly.teleport(this.Barycenter.x, this.Barycenter.y);
-        }
-        this.input_manage(player);
+    update_ship() {
+        this.shield_poly.teleport(this.Barycenter.x, this.Barycenter.y);
+
+        let truster_pos = this.Barycenter.add(this.forward_vector(-4));
+        this.truster_poly.teleport(truster_pos.x, truster_pos.y);
+        this.truster_poly.rotate(this.rot_speed);
+
+        this.input_manage();
         super.updatePos();
     }
     draw(ctx) {
         if (this.shield)
             this.shield_poly.draw(ctx);
+        if (this.truster_on) {
+            this.truster_poly.Color = random_rgb();
+            this.truster_poly.draw(ctx);
+            this.truster_on = false;
+        }
         super.draw(ctx);
     }
     Collide(OtherPoly) {
         if (this.shield)
             return this.shield_poly.Collide(OtherPoly);
-        return super.Collide(OtherPoly);
+        else
+            return super.Collide(OtherPoly);
     }
 }
