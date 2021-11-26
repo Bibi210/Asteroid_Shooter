@@ -221,6 +221,7 @@ export class Rectangle extends Polygon {
         this.w = w;
         this.h = h;
     }
+    
     gen_point() {
         let x = Rand_Between(this.Start_Point.x, this.Start_Point.x + this.w);
         let y = Rand_Between(this.Start_Point.y, this.Start_Point.y + this.h);
