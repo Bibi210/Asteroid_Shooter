@@ -5,7 +5,7 @@ import { Object } from "./SpaceShip.js"
 // let CONVEXE = 0;
 let CONCAVE = 1;
 
-let LVL_MAX = 6;
+let LVL_MAX = 4;
 let MAX_SPEED = 0.5;
 let MIN_SPEED = 0.1;
 
@@ -15,12 +15,10 @@ let MIN_SIZE = 80;
 let DISPERSION = 160;
 
 let COLOR = [
-    "#fedfd4",
-    "#cb1b16",
-    "#ef3c2d",
-    "#f26a4f",
-    "#f29479",
-    "#65010c",
+    "rgb(255,255,255)",
+    "#f48c06",
+    "#dc2f02",
+    "#9d0208",
 ];
 
 export class Asteroid extends Object {
@@ -106,7 +104,7 @@ function push_verticaly(y, size) {
     return y;
 }
 
-// Can maybe be useful
+// could be useful
 // export function rand_direction(speed) {
 //     let a = Math.floor(Rand_Between(0, 361)) * Math.PI / 180;
 //     return new Point(speed * Math.sin(a), speed * Math.cos(a));
@@ -204,7 +202,7 @@ export class Buff {
     remove_buff() {
         switch (this.type) {
             case buff_type.Gatling:
-                this.owner.cooling = 50;
+                this.owner.cooling = 100;
                 break;
             case buff_type.Big_Bullet:
                 this.owner.bullets_size = 5;

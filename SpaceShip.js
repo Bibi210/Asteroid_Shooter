@@ -82,7 +82,7 @@ export class Ship extends Object {
         this.frottement_rate = 0.9988;
         this.accel_rate = 0.003 * 2;
 
-        this.cooling = 50;
+        this.cooling = 100;
         this.bullets_size = 5;
         this.shield = true;
         this.shield_poly = new Object(shield_points, scale * 7, this.Color);

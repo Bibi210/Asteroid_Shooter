@@ -1,6 +1,6 @@
 import { Buff, draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
 import { arrow, main_menu, set_offset } from "./game.js";
-import { Point, Rectangle, to_radians } from "./lib.js";
+import { Point, probability, Rectangle, to_radians } from "./lib.js";
 import { draw_particules, move_particules, spawn_particules } from "./particule.js";
 import { Player } from "./player.js";
 
@@ -11,15 +11,26 @@ let ctx = cnv.getContext("2d");
 
 let FPS = 300;
 let STATE = 0;
-let DIFFICULTY_RATIO = 2000;
+let DIFFICULTY_RATIO = 5000;
 
 export let WIDTH = cnv.width;
 export let HEIGHT = cnv.height;
 export let CENTER = new Point(WIDTH / 2, HEIGHT / 2);
 
+let STAR_COUNT = 200;
+let STAR_COLOR = "rgba(255, 214, 10, 0.5)"
+let STAR_COLOR_SHINNING = "rgba(255, 214, 10, 1)"
 let ASTEROID_COUNT = 0;
 let LVL = 0;
 
+let background_bounds = new Rectangle(new Point(0, 0), WIDTH, HEIGHT);
+let background = [];
+for (let i = 0; i < STAR_COUNT; i++) {
+    let star = background_bounds.gen_point();
+    star.color = STAR_COLOR;
+    star.size = 2;
+    background.push(star);
+}
 
 export let asteroids = [];
 let particules = [];
@@ -39,7 +50,6 @@ let ship_B_keys = ['o', 'k', 'l', 'm', 'Enter'];
 let game_sound = new Audio('./Audio/In_Game/shreksophone.mp3');
 let sound_on = false;
 
-
 export let key_pressed = [];
 export let bullets = [];
 export let buffs = [];
@@ -47,13 +57,8 @@ let players = [];
 let fragments = [];
 
 function init() {
-    play_menu();
-}
-
-function play_menu() {
-    STATE = 0;
     ASTEROID_COUNT = 10;
-    LVL = 2;
+    LVL = 1;
 
     asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
 }
@@ -72,14 +77,31 @@ function keyup_callback(event) {
     key_pressed = key_pressed.filter(i => i != event.key);
 }
 
+function move_background() {
+    background.forEach(s => {
+        s.x -= players[0].speed.x / 4
+        s.y -= players[0].speed.y / 4
+
+        if (s.x > WIDTH + s.size)
+            s.x = -s.size
+        if (s.x < -s.size)
+            s.x = WIDTH + s.size
+        if (s.y > HEIGHT + s.size)
+            s.y = -s.size
+        if (s.y < -s.size)
+            s.y = HEIGHT + s.size
+    });
+}
+
 function handle_state(key) {
     if (key == '0' && STATE != 0) {
-        play_menu();
+        STATE = 0;
     }
     if (!STATE) {
         players = [];
         particules = [];
         fragments = [];
+        bullets = [];
         LVL = 1;
         if (key == '1') {
             STATE = 1;
@@ -93,7 +115,7 @@ function handle_state(key) {
         else if (key == '2') {
             STATE = 2;
 
-            ASTEROID_COUNT = 4;
+            ASTEROID_COUNT = 5;
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
@@ -121,11 +143,11 @@ function handle_state(key) {
             set_offset(0.2);
         }
         else if (key == 'm') {
-            set_lvl_max(4);
+            set_lvl_max(3);
             set_offset(0.35);
         }
         else if (key == 'h') {
-            set_lvl_max(6);
+            set_lvl_max(4);
             set_offset(0.5);
         }
     }
@@ -137,12 +159,21 @@ function draw_elements() {
     let init_pos = 24;
     let offset = 65;
 
-    draw_asteroids(asteroids, ctx);
+    for (let i = 0; i < background.length; i++) {
+        let is_shinning = probability(50);
+        if (is_shinning) {
+            background[i].color = STAR_COLOR_SHINNING;
+        } else {
+            background[i].color = STAR_COLOR;
+        }
+        background[i].draw(ctx);
+    }
     if (!STATE) {
         main_menu(ctx);
         arrow(ctx);
     }
     else {
+        draw_asteroids(asteroids, ctx);
         bullets.forEach(element => element.draw(ctx));
         players.forEach(element => element.draw(ctx));
         fragments.forEach(element => element[0].draw(ctx));
@@ -158,6 +189,8 @@ function draw_elements() {
 }
 
 function update_pos() {
+    if (STATE)
+        move_background();
     move_asteroids(asteroids);
     move_particules(particules);
     players.forEach(element => element.update_player());
@@ -260,7 +293,7 @@ function update() {
         }
     }
     if ((!players.length && STATE != 0) || (STATE == 3 && players.length == 1)) {
-        play_menu();
+        STATE = 0;
     }
 
     for (let i = 0; i < fragments.length; i++) {
@@ -303,7 +336,6 @@ function music_pause() {
 addEventListener("keypress", keydown_callback);
 addEventListener("keyup", keyup_callback);
 addEventListener("mouseout", music_pause);
-
 
 init();
 setInterval(game, 1000 / FPS);
