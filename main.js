@@ -59,6 +59,14 @@ function play_menu() {
     STATE = 0;
     ASTEROID_COUNT = 10;
     LVL = 2;
+
+    asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
+}
+
+function play_menu() {
+    STATE = 0;
+    ASTEROID_COUNT = 10;
+    LVL = 2;
     asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
 }
 
@@ -217,11 +225,13 @@ function process_collisions() {
                 if (other != player) {
                     if (player.Collide(other)) {
                         let new_dir = new Point(player.speed.x + player.Barycenter.x, player.speed.y + player.Barycenter.y);
-                        //TODO Find better pos
-                        let new_pos = new Point(player.Barycenter.x - player.speed.x, player.Barycenter.y - player.speed.y);
-                        particules = particules.concat(spawn_particules(25, new_pos, new_dir, player.Barycenter, player.Color, player.Size));
-                        if (player.life_lost())
+                        particules = particules.concat(spawn_particules(25, asteroid.Barycenter, new_dir, player.Barycenter, asteroid.Color, asteroid.lvl));
+                        if (player.life_lost()) {
+                            fragments = fragments.concat(player.get_fragments());
+                            player.speed = new Point(0, 0);
+                            player.teleport(CENTER.x, CENTER.y);
                             player.score += 1000;
+                        }
                     }
                 }
             });
