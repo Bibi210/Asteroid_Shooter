@@ -13,7 +13,6 @@ export class Object extends Polygon {
         super(JSON.parse(JSON.stringify(Shape)), color);
         this.scale(scale);
     }
-
     updatePos() {
         this.current_direction = (this.current_direction + this.rot_speed) % 360;
         this.rotate(this.rot_speed)
@@ -25,7 +24,6 @@ export class Object extends Polygon {
 
         this.wrap_object();
     }
-
     wrap_object() {
         let dx = WIDTH + this.Size * 2;
         let dy = HEIGHT + this.Size * 2;
@@ -82,7 +80,7 @@ export class Ship extends Object {
         this.frottement_rate = 0.9988;
         this.accel_rate = 0.003 * 2;
 
-        this.cooling = 50;
+        this.cooling = 100;
         this.bullets_size = 5;
         this.shield = true;
         this.shield_poly = new Object(shield_points, scale * 7, this.Color);

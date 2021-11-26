@@ -1,11 +1,11 @@
 import { probability, gen_poly_concave, Point, Rand_Between, random_rgb } from "./lib.js";
-import { CENTER, HEIGHT, WIDTH, buffs } from "./main.js";
+import { asteroids, CENTER, HEIGHT, WIDTH, buffs } from "./main.js";
 import { Object } from "./SpaceShip.js"
 
 // let CONVEXE = 0;
 let CONCAVE = 1;
 
-let LVL_MAX = 6;
+let LVL_MAX = 4;
 let MAX_SPEED = 0.5;
 let MIN_SPEED = 0.1;
 
@@ -119,7 +119,7 @@ export function better_direction(speed, from, to) {
     return p;
 }
 
-function get_angle(A, O) {
+export function get_angle(A, O) {
     let angle = (to_radian(360) - Math.atan2(A.y - O.y, A.x - O.x)) % to_radian(360);
     return angle
 }
@@ -204,7 +204,7 @@ export class Buff {
     remove_buff() {
         switch (this.type) {
             case buff_type.Gatling:
-                this.owner.cooling = 50;
+                this.owner.cooling = 100;
                 break;
             case buff_type.Big_Bullet:
                 this.owner.bullets_size = 5;
@@ -235,4 +235,17 @@ export class Buff {
         if (!copy)
             buffs.push(this);
     }
+}
+
+export function closest_asteroid(point) {
+    let closest_distance = asteroids[0].Barycenter.distance(point);
+    let rock;
+    asteroids.forEach(element => {
+        let elm_distance = element.Barycenter.distance(point);
+        if (elm_distance <= closest_distance) {
+            closest_distance = elm_distance;
+            rock = element;
+        }
+    });
+    return rock;
 }

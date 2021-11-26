@@ -1,5 +1,5 @@
-import { better_direction } from "./asteroid.js";
-import { Point } from "./lib.js";
+import { better_direction, closest_asteroid, get_angle } from "./asteroid.js";
+import { Point, to_degrees,probability } from "./lib.js";
 import { CENTER } from "./main.js";
 import { Ship, Object } from "./SpaceShip.js"
 
@@ -47,5 +47,37 @@ export class Player extends Ship {
         }
 
         return fragments
+    }
+
+    bot() {
+        let close_asteroid = closest_asteroid(this.Start_Point);
+        /*            let segm = new Segment(close_asteroid.Barycenter, this.Start_Point);
+                   segm.Color = random_rgb();
+                   segm.draw(ctx); */
+
+        let angle_with_asteroid = to_degrees(get_angle(close_asteroid.Barycenter, this.Start_Point));
+        let delta = Math.abs(this.current_direction - angle_with_asteroid) % 360;
+
+        if (delta <= 2 && delta >= -2) {
+            this.shoot();
+            if (probability(30)) {
+                this.forward();
+            }
+        }
+        else {
+            if (delta >= 181) {
+                this.rotate(-0.8);
+                this.current_direction -= 0.8;
+            }
+            if (delta <= 181 && delta >= 179) {
+                if (probability(30)) {
+                    this.forward();
+                }
+            }
+            else if (delta <= 179) {
+                this.rotate(0.8);
+                this.current_direction += 0.8;
+            }
+        }
     }
 }

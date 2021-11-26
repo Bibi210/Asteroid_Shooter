@@ -1,6 +1,6 @@
-import { Buff, draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision } from "./asteroid.js";
+import { closest_asteroid, Buff, draw_asteroids, fill_asteroids, get_lvl_max, move_asteroids, set_lvl_max, spawn_asteroid, spawn_on_colision, get_angle } from "./asteroid.js";
 import { arrow, main_menu, set_offset } from "./game.js";
-import { Point, Rectangle, to_radians } from "./lib.js";
+import { Point, Rectangle, to_radians, Segment, random_rgb, to_degrees, probability } from "./lib.js";
 import { draw_particules, move_particules, spawn_particules } from "./particule.js";
 import { Player } from "./player.js";
 
@@ -11,7 +11,7 @@ let ctx = cnv.getContext("2d");
 
 let FPS = 300;
 let STATE = 0;
-let DIFFICULTY_RATIO = 2000;
+let DIFFICULTY_RATIO = 10000;
 
 export let WIDTH = cnv.width;
 export let HEIGHT = cnv.height;
@@ -19,7 +19,8 @@ export let CENTER = new Point(WIDTH / 2, HEIGHT / 2);
 
 let ASTEROID_COUNT = 0;
 let LVL = 0;
-
+let frame = 0;
+let demo = true;
 
 export let asteroids = [];
 let particules = [];
@@ -36,7 +37,12 @@ export let truster_points = [new Point(0, 0), new Point(1, 0), new Point(0.5, 1)
 let ship_A_keys = ['z', 'q', 's', 'd', ' '];
 let ship_B_keys = ['o', 'k', 'l', 'm', 'Enter'];
 
-let game_sound = new Audio('./Audio/In_Game/shreksophone.mp3');
+let game_sound;
+if (probability(50))
+    game_sound = new Audio('./Audio/In_Game/shreksophone.mp3');
+else
+    game_sound = new Audio('./Audio/In_Game/Darude.mp3');
+
 let sound_on = false;
 
 
@@ -59,17 +65,19 @@ function play_menu() {
 }
 
 function keydown_callback(event) {
-    if (event.key == 'p')
+    let key = event.key;
+    if (key == 'p')
         if (!sound_on)
             music_go();
         else
             music_pause();
-    handle_state(event.key);
-    if (!key_pressed.some(i => i == event.key))
-        key_pressed.push(event.key);
+    handle_state(key);
+    if (!key_pressed.some(i => i == key))
+        key_pressed.push(key);
 }
 function keyup_callback(event) {
-    key_pressed = key_pressed.filter(i => i != event.key);
+    let key = event.key
+    key_pressed = key_pressed.filter(i => i != key);
 }
 
 function handle_state(key) {
@@ -121,11 +129,11 @@ function handle_state(key) {
             set_offset(0.2);
         }
         else if (key == 'm') {
-            set_lvl_max(4);
+            set_lvl_max(3);
             set_offset(0.35);
         }
         else if (key == 'h') {
-            set_lvl_max(6);
+            set_lvl_max(4);
             set_offset(0.5);
         }
     }
@@ -260,6 +268,7 @@ function update() {
         }
     }
     if ((!players.length && STATE != 0) || (STATE == 3 && players.length == 1)) {
+        asteroids = [];
         play_menu();
     }
 
@@ -271,6 +280,9 @@ function update() {
             fragments[i][1] -= 1;
         }
     }
+    if (demo)
+        players.forEach(player => player.bot());
+
 }
 
 function compute_asteroid_tot() {
@@ -278,15 +290,18 @@ function compute_asteroid_tot() {
     asteroids.forEach(asteroid => {
         tot += asteroid.lvl;
     });
-
     return tot;
 }
 
 function game() {
+    frame++;
     update_pos();
-    process_collisions();
+    if (frame % 4 == 0)
+        process_collisions();
+
     draw_elements();
     update();
+
 }
 
 function music_go() {
@@ -303,11 +318,17 @@ function music_pause() {
 addEventListener("keypress", keydown_callback);
 addEventListener("keyup", keyup_callback);
 addEventListener("mouseout", music_pause);
+game_sound.addEventListener('ended', () => {
+    game_sound.currentTime = 0;
+    game_sound.pause();
+    game_sound.play();
+});
+
+
 
 
 init();
 setInterval(game, 1000 / FPS);
 
-//TODO Thruster
 //TODO clean code
 //TODO Music

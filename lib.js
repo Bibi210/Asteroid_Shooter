@@ -8,6 +8,9 @@ export function random_rgb() {
 export function to_radians(angle) {
     return angle * (Math.PI / 180);
 }
+export function to_degrees(angle) {
+    return angle * 180 / Math.PI;
+}
 
 export function probability(pourcent) {
     if (Math.floor(Rand_Between(0, 101)) <= pourcent)
