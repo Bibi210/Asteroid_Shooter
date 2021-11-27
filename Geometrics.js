@@ -1,4 +1,6 @@
-import { WIDTH, HEIGHT } from './main.js'
+import { HEIGHT, WIDTH } from './main.js';
+
+//* Utils Functions //
 export function Rand_Between(min, max) {
     return Math.random() * (max - min) + min;
 }
@@ -6,11 +8,11 @@ export function random_rgb() {
     return "rgb(" + (Math.random() * 255) + "," + (Math.random() * 255) + "," + (Math.random() * 255) + ")";
 }
 
-export function to_radians(angle) {
-    return angle * (Math.PI / 180);
+export function to_radians(deg_angle) {
+    return deg_angle * (Math.PI / 180);
 }
-export function to_degrees(angle) {
-    return angle * 180 / Math.PI;
+export function to_degrees(rad_angle) {
+    return rad_angle * 180 / Math.PI;
 }
 
 export function probability(pourcent) {
@@ -18,7 +20,9 @@ export function probability(pourcent) {
         return true;
     return false;
 }
+//* Utils Functions //
 
+// Also Used As Accel_Vectors
 export class Point {
     constructor(x, y, size = 0, color = random_rgb()) {
         this.x = x;
@@ -46,6 +50,12 @@ export class Point {
     }
     add(other) {
         return new Point(this.x + other.x, this.y + other.y);
+    }
+    sous(other) {
+        return new Point(this.x - other.x, this.y - other.y);
+    }
+    mul(other) {
+        return new Point(this.x * other.x, this.y * other.y);
     }
 }
 
@@ -89,16 +99,17 @@ export class Segment {
     }
 }
 
-export class Polygon {
+// Polygon Collision and utility functions
+class Polygon {
     constructor(Point_List, color) {
         this.Point_List = Point_List;
         this.Start_Point = this.Point_List[0];
         this.Barycenter = new Point(0, 0);
-        this.calculateBarycenter();
         this.Color = color;
+
+        this.calculateBarycenter();
         this.calculateSize();
     }
-
     calculateBarycenter() {
         let nb = 0;
         this.Barycenter = new Point(0, 0);
@@ -215,6 +226,8 @@ export class Polygon {
         this.calculateSize();
     }
 }
+
+// Moving Objects
 export class Object extends Polygon {
     current_direction = 0;
     rot_speed = 0;

@@ -1,8 +1,8 @@
 import { better_direction, get_lvl_max } from "./asteroid.js";
-import { Point, Rand_Between } from "./lib.js";
+import { Point, Rand_Between } from "./Geometrics.js";
 
-let MAX_LIFETIME = 150;
-let MIN_LIFETIME = 100;
+const MAX_LIFETIME = 150;
+const MIN_LIFETIME = 100;
 
 export let MAX_PARTICULES = 10;
 export let MIN_PARTICULES = 5;
