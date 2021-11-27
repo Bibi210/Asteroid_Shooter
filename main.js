@@ -24,7 +24,7 @@ let ASTEROID_COUNT = 0;
 let LVL = 0;
 
 let frame = 0;
-let demo = true;
+let demo = false;
 
 let background_bounds = new Rectangle(new Point(0, 0), WIDTH, HEIGHT);
 let background = [];
@@ -129,8 +129,8 @@ function handle_state(key) {
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
-            playerA.move(WIDTH / 4, 0);
-            playerB.move(-WIDTH / 4, 0);
+            playerA.move(-WIDTH / 4, 0);
+            playerB.move(WIDTH / 4, 0);
             players.push(playerA);
             players.push(playerB);
             asteroids = fill_asteroids(ASTEROID_COUNT, LVL)
@@ -142,8 +142,8 @@ function handle_state(key) {
 
             let playerA = new Player(ship_points, 5, ship_A_keys, 3, 1, 'rgb(45,255,45)');
             let playerB = new Player(ship_points, 5, ship_B_keys, 3, 2, 'rgb(255,45,45)');
-            playerA.move(WIDTH / 4, 0);
-            playerB.move(-WIDTH / 4, 0);
+            playerA.move(-WIDTH / 4, 0);
+            playerB.move(WIDTH / 4, 0);
             players.push(playerA);
             players.push(playerB);
             asteroids = fill_asteroids(ASTEROID_COUNT, LVL);
@@ -159,6 +159,9 @@ function handle_state(key) {
         else if (key == 'h') {
             set_lvl_max(4);
             set_offset(0.5);
+        }
+        else if (key == 'd') {
+            demo = !demo;
         }
     }
 }
@@ -179,7 +182,7 @@ function draw_elements() {
         background[i].draw(ctx);
     }
     if (!STATE) {
-        main_menu(ctx);
+        main_menu(ctx, demo);
         arrow(ctx);
     }
     else {

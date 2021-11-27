@@ -2,7 +2,7 @@ import { HEIGHT, WIDTH } from "./main.js";
 
 let offset = 0.5;
 
-export function main_menu(ctx) {
+export function main_menu(ctx, demo) {
     ctx.font = '86px Courier New';
     ctx.fillStyle = 'rgb(255,45,45)';
     ctx.fillText('Trigo Pain', 0.10 * WIDTH, 0.20 * HEIGHT);
@@ -14,6 +14,11 @@ export function main_menu(ctx) {
     ctx.fillText('E - Easy', 0.70 * WIDTH, 0.35 * HEIGHT);
     ctx.fillText('M - Medium', 0.70 * WIDTH, 0.50 * HEIGHT);
     ctx.fillText('H - Hard', 0.70 * WIDTH, 0.65 * HEIGHT);
+    if (demo)
+        ctx.fillStyle = 'rgb(45,255,45)';
+    else
+        ctx.fillStyle = 'rgb(255,45,45)';
+    ctx.fillText('D - Demo', 0.70 * WIDTH, 0.80 * HEIGHT);
 }
 
 export function arrow(ctx) {
