@@ -31,7 +31,7 @@ export class Player extends Ship {
         let x_init = 6
         let x_offset = 30
         for (let i = 0; i < this.life; i++) {
-            ctx.fillText('❤️', x_init, init + offset/ 3);
+            ctx.fillText('❤️', x_init, init + offset / 3);
             x_init += x_offset;
         }
     }
@@ -46,7 +46,7 @@ export class Player extends Ship {
                 }
 
                 if (buff.type == buff_type.Big_Bullet) {
-                    ctx.fillText('Big bullet: true', 0.20 * WIDTH, init + (0.08 * HEIGHT));
+                    ctx.fillText('Big bullet: ' + (buff.buff_duration / 10).toString(), 0.20 * WIDTH, init + (0.08 * HEIGHT));
                 }
             }
         });
