@@ -180,7 +180,7 @@ export class Buff {
     apply_buff() {
         switch (this.type) {
             case buff_type.Gatling:
-                this.buff_duration = 600;
+                this.buff_duration = 1200;
                 this.owner.cooling = 15;
                 break;
             case buff_type.Big_Bullet:
