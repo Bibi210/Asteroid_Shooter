@@ -3,7 +3,7 @@ import { asteroids, CENTER, HEIGHT, WIDTH, buffs } from "./main.js";
 
 const CONCAVE = 1;
 
-const LVL_MAX = 4;
+let LVL_MAX = 4;
 const MAX_SPEED = 0.5;
 const MIN_SPEED = 0.1;
 
