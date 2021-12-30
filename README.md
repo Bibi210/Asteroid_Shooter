@@ -2,6 +2,9 @@
 
 Reproduction du jeu d'arcade [Asteroids](https://fr.wikipedia.org/wiki/Asteroids) avec Javascript (Canva API)
 
+## Play Online
+[Click Here](https://bibi210.github.io/Trigo_Pain/)
+
 ## Local Install
 - `git clone https://github.com/Bibi210/Trigo_Pain.git`
 - `cd Trigo_Pain`
